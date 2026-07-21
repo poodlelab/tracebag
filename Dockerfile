@@ -17,7 +17,7 @@ RUN dotnet restore src/Tracebag.Api/Tracebag.Api.csproj
 COPY src/Tracebag.Api src/Tracebag.Api
 RUN dotnet publish src/Tracebag.Api/Tracebag.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:b02ab6637e02dfe07d4205d557cbce7e2ab0e4a1d7d1285868b4f31eed20bd10 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:27b6b84beeede74fd16886177d360799c8e4299ceadfbd64eef57bafead7878a AS runtime
 WORKDIR /app
 
 COPY --from=backend-build /app/publish ./
