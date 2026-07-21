@@ -10,7 +10,7 @@ RUN dotnet tool install -g dotnet-counters --version "${DIAGNOSTICS_TOOLS_VERSIO
 
 ENV PATH="/root/.dotnet/tools:${PATH}"
 
-FROM mcr.microsoft.com/dotnet/runtime:8.0-noble@sha256:0f038d362c97c1d34ce2481891e7dadfcbb67a014fed7e010ba2ef5bbb9c5820
+FROM mcr.microsoft.com/dotnet/runtime:10.0-noble@sha256:ed5d539b27842d656a06a5984dbcb5114d3e885fbada612a49a5a7c3c3a44e1c
 
 ENV PATH="/root/.dotnet/tools:${PATH}" \
     DOTNET_CLI_HOME=/tmp/tracebag-dotnet-cli \
