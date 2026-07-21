@@ -1,54 +1,87 @@
 version: 2
+
+# Keep routine updates small and reviewable. Major runtime and framework
+# migrations are planned work and must not be introduced automatically.
 updates:
   - package-ecosystem: npm
     directory: /src/Tracebag.Web
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     groups:
-      angular:
-        patterns: ['@angular/*', '@ngrx/*', 'rxjs', 'zone.js']
+      web-compatible:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: npm
     directory: /website
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     groups:
-      website:
+      website-compatible:
         patterns: ['*']
+        update-types: ['minor', 'patch']
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: npm
     directory: /tests/browser
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     groups:
-      browser-tests:
+      browser-tests-compatible:
         patterns: ['*']
+        update-types: ['minor', 'patch']
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: nuget
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      dotnet-compatible:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 3
     groups:
-      actions:
+      actions-compatible:
         patterns: ['*']
+        update-types: ['minor', 'patch']
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
   - package-ecosystem: docker
-    directory: /
+    directories:
+      - /
+      - /demo
+      - /runners/dotnet-8
+      - /runners/dotnet-9
+      - /runners/dotnet-10
     schedule:
       interval: weekly
-  - package-ecosystem: docker
-    directory: /demo
-    schedule:
-      interval: weekly
-  - package-ecosystem: docker
-    directory: /runners/dotnet-8
-    schedule:
-      interval: weekly
-  - package-ecosystem: docker
-    directory: /runners/dotnet-9
-    schedule:
-      interval: weekly
-  - package-ecosystem: docker
-    directory: /runners/dotnet-10
-    schedule:
-      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      container-images-compatible:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
