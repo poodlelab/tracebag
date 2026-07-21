@@ -12,7 +12,7 @@ interface Props {
 
 const { title, description, image } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const socialImage = new URL(image ?? `${import.meta.env.BASE_URL}social-card.svg`, Astro.site);
+const socialImage = new URL(image ?? `${import.meta.env.BASE_URL}social-card.png`, Astro.site);
 ---
 
 <!doctype html>
