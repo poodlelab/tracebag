@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageVersion Include="Docker.DotNet" Version="3.125.15" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.28" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.18" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.28" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.28" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.28" />
