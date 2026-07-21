@@ -1,0 +1,181 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const base = import.meta.env.BASE_URL;
+const jobs = [
+  {
+    question: 'What changed when the requests started failing?',
+    answer: 'Search retained container logs and compare the first bad request with Docker health, restart, OOM, and resource events from the same window.',
+  },
+  {
+    question: 'Is the .NET runtime under pressure?',
+    answer: 'Watch or record CPU, allocation, GC, ThreadPool, contention, and memory counters without attaching an interactive shell to the workload.',
+  },
+  {
+    question: 'What evidence will we need after the incident?',
+    answer: 'Capture a bounded stack snapshot, EventPipe trace, or dump and keep it with the logs, notes, and exact time range that explain why it was taken.',
+  },
+] as const;
+---
+
+<BaseLayout
+  title="Tracebag — self-hosted debugging for .NET containers"
+  description="Search logs, inspect .NET runtime pressure, and preserve diagnostic evidence from Dockerized .NET applications."
+>
+  <section class="hero shell">
+    <div class="hero-copy">
+      <h1>Debug a .NET container after the easy checks stop helping.</h1>
+      <p class="lead">Tracebag keeps its logs, runtime counters, Docker state, stack snapshots, and traces in one incident timeline. It runs on your Docker host and stores the evidence there.</p>
+      <div class="actions">
+        <a class="button" href={`${base}getting-started/`}>Install Tracebag</a>
+        <a class="button button-secondary" href={`${base}demo/`}>See the demo investigation</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="product-proof shell" aria-labelledby="capture-caption">
+    <figure>
+      <div class="screenshot-scroll" tabindex="0" aria-label="Scrollable Tracebag incident screenshot">
+        <img src={`${base}screenshots/demo-contention-overview.jpg`} alt="Tracebag incident with an ordered capture timeline and its evidence" width="1265" height="712" loading="eager" />
+      </div>
+      <div class="screenshot-scroll-meta">
+        <span>Swipe to inspect</span>
+        <a href={`${base}screenshots/demo-contention-overview.jpg`}>Open full size <span aria-hidden="true">↗</span></a>
+      </div>
+      <figcaption id="capture-caption">
+        <strong>A real capture from the included lock-contention demo.</strong>
+        <span>The ordered timeline is on the left; the logs, counter window, Docker state, and diagnostic artifacts are kept beside it.</span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="section shell" id="features">
+    <div class="section-heading plain-heading">
+      <h2>Start with the question you actually have.</h2>
+      <p>Tracebag is not another general-purpose dashboard. It is a place to investigate one difficult failure and retain enough evidence to explain it later.</p>
+    </div>
+    <div class="job-list">
+      {jobs.map((job, index) => (
+        <article>
+          <span class="job-number">{String(index + 1).padStart(2, '0')}</span>
+          <h3>{job.question}</h3>
+          <p>{job.answer}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section section-muted investigation">
+    <div class="shell investigation-grid">
+      <div class="investigation-copy">
+        <h2>An endpoint stalls. Requests queue. CPU alone does not explain it.</h2>
+        <p>The demo API can reproduce that exact situation with a bounded lock-contention workload. Tracebag records the counter window, captures stacks and a threading trace, and links the useful findings back to the original evidence.</p>
+        <p>Nothing in the demo is a mock screenshot or a scripted result. It runs the same images and diagnostic runners used for another opted-in .NET container.</p>
+        <a class="text-link" href={`${base}demo/`}>Follow the ten-minute investigation <span aria-hidden="true">→</span></a>
+      </div>
+      <figure>
+        <div class="screenshot-scroll" tabindex="0" aria-label="Scrollable Tracebag correlation screenshot">
+          <img src={`${base}screenshots/demo-contention-correlation.jpg`} alt="Tracebag correlation view aligning runtime pressure, trace events, and logs" width="1265" height="712" loading="lazy" />
+        </div>
+        <div class="screenshot-scroll-meta">
+          <span>Swipe to inspect</span>
+          <a href={`${base}screenshots/demo-contention-correlation.jpg`}>Open full size <span aria-hidden="true">↗</span></a>
+        </div>
+        <figcaption>Runtime pressure, trace events, and logs aligned around the same incident window.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section shell boundary-section">
+    <div class="boundary-intro">
+      <h2>It needs the Docker socket. That is a serious permission.</h2>
+      <p>Tracebag uses Docker access to inspect opted-in workloads and launch temporary diagnostic runners. It should run only on a host you control, bound to localhost or protected by a trusted HTTPS proxy.</p>
+      <a class="text-link" href={`${base}security/`}>Read the complete security model <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="boundary-details">
+      <h3>The default boundaries</h3>
+      <ul>
+        <li>Containers remain invisible until they carry the opt-in label.</li>
+        <li>The browser cannot submit shell commands or arbitrary Docker requests.</li>
+        <li>Diagnostics use fixed profiles, hard limits, and network-isolated runners.</li>
+        <li>Authentication is enabled and the service binds to localhost.</li>
+        <li>Evidence stays local unless an operator explicitly exports it.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section demo-cta">
+    <div class="shell demo-cta-inner">
+      <div>
+        <h2>Try it on an API designed to fail safely.</h2>
+        <p>Generate CPU pressure, allocations, contention, slow requests, downstream failures, or ThreadPool starvation, then investigate the result in Tracebag.</p>
+      </div>
+      <div class="actions">
+        <a class="button" href={`${base}getting-started/`}>Install with Docker</a>
+        <a class="button button-secondary" href="https://github.com/poodlelab/tracebag">Browse the source</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero { padding-block: clamp(5rem, 10vw, 8rem) clamp(3.5rem, 7vw, 5.5rem); }
+  .hero-copy { max-width: 880px; }
+  .hero h1 { font-size: clamp(3rem, 7.2vw, 6rem); max-width: 980px; }
+  .hero .lead { max-width: 770px; }
+
+  .product-proof { padding-bottom: clamp(5rem, 9vw, 8rem); }
+  figure { margin: 0; }
+  .product-proof figure { border-block: 1px solid var(--border-strong); padding-block: 0.9rem 1rem; }
+  .product-proof .screenshot-scroll { border: 1px solid var(--border); }
+  .product-proof figcaption { align-items: baseline; display: grid; gap: 0.6rem 2rem; grid-template-columns: minmax(16rem, 0.8fr) 1.2fr; padding-top: 1rem; }
+  .product-proof figcaption strong { font-size: 0.92rem; }
+  .product-proof figcaption span { color: var(--muted); font-size: 0.86rem; line-height: 1.55; }
+
+  .plain-heading { max-width: 760px; }
+  .plain-heading h2 { margin-bottom: 1.2rem; }
+  .job-list { border-top: 1px solid var(--border-strong); }
+  .job-list article { align-items: start; border-bottom: 1px solid var(--border); display: grid; gap: 1.5rem; grid-template-columns: 3rem minmax(15rem, 0.8fr) 1.2fr; padding-block: 1.7rem; }
+  .job-number { color: var(--accent); font: 0.72rem var(--mono); padding-top: 0.25rem; }
+  .job-list h3 { font-size: 1.08rem; line-height: 1.35; margin: 0; }
+  .job-list p { color: var(--muted-bright); font-size: 0.93rem; line-height: 1.65; margin: 0; }
+
+  .investigation-grid { align-items: center; display: grid; gap: clamp(3rem, 7vw, 6rem); grid-template-columns: 0.75fr 1.25fr; }
+  .investigation-grid > * { min-width: 0; }
+  .investigation-copy { width: 100%; }
+  .investigation-copy h2 { font-size: clamp(2.1rem, 4vw, 3.4rem); }
+  .investigation-copy p { color: var(--muted-bright); line-height: 1.75; }
+  .investigation figure { border: 1px solid var(--border); min-width: 0; width: 100%; }
+  .investigation figcaption { color: var(--muted); font-size: 0.8rem; line-height: 1.5; padding: 0.8rem 1rem; }
+
+  .boundary-section { align-items: start; display: grid; gap: clamp(3rem, 8vw, 7rem); grid-template-columns: 1fr 1fr; }
+  .boundary-intro p { color: var(--muted-bright); line-height: 1.75; }
+  .boundary-details { border-top: 1px solid var(--border-strong); padding-top: 1.4rem; }
+  .boundary-details h3 { font-size: 0.95rem; margin-bottom: 1.2rem; }
+  .boundary-details ul { color: var(--muted-bright); display: grid; gap: 0.9rem; list-style: none; margin: 0; padding: 0; }
+  .boundary-details li { border-bottom: 1px solid var(--border); line-height: 1.55; padding: 0 0 0.9rem 1.4rem; position: relative; }
+  .boundary-details li::before { color: var(--accent); content: '—'; left: 0; position: absolute; }
+
+  .text-link { color: var(--text); display: inline-block; font-weight: 700; margin-top: 1rem; text-decoration: none; }
+  .text-link span { color: var(--accent); margin-left: 0.35rem; }
+  .demo-cta { border-top: 1px solid var(--border); }
+  .demo-cta-inner { align-items: end; display: grid; gap: 3rem; grid-template-columns: 1fr auto; }
+  .demo-cta h2 { font-size: clamp(2.2rem, 4.5vw, 3.8rem); margin-bottom: 1rem; max-width: 760px; }
+  .demo-cta p { color: var(--muted-bright); line-height: 1.7; margin: 0; max-width: 720px; }
+  .demo-cta .actions { justify-content: end; margin: 0; }
+
+  @media (max-width: 850px) {
+    .investigation-grid, .boundary-section, .demo-cta-inner { grid-template-columns: 1fr; }
+    .investigation-copy { max-width: 680px; }
+    .demo-cta .actions { justify-content: start; }
+  }
+
+  @media (max-width: 700px) {
+    .hero { padding-top: 4rem; }
+    .hero h1 { letter-spacing: -0.05em; }
+    .product-proof figcaption, .job-list article { grid-template-columns: 1fr; }
+    .job-list article { gap: 0.7rem; }
+    .job-number { padding: 0; }
+    .product-proof figcaption { gap: 0.4rem; }
+  }
+</style>

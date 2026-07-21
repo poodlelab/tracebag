@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
+const docs = [
+  ['Get started', 'Install the released images and connect the first opted-in container.', `${base}getting-started/`],
+  ['Demo tour', 'Generate bounded problems and follow an evidence-first investigation.', `${base}demo/`],
+  ['Configuration', 'Environment variables, limits, storage, authentication, and runtime runners.', 'https://github.com/poodlelab/tracebag/blob/main/docs/configuration.md'],
+  ['Container labels', 'Discovery, log persistence, .NET sockets, runtime versions, and gated operations.', 'https://github.com/poodlelab/tracebag/blob/main/docs/labels.md'],
+  ['Logs and search', 'Checkpointing, parsing, cursor pagination, live tail, and retention behavior.', 'https://github.com/poodlelab/tracebag/blob/main/docs/log-ingestion.md'],
+  ['Counters', 'Live .NET metrics, presets, durable recordings, charts, and exports.', 'https://github.com/poodlelab/tracebag/blob/main/docs/counter-profiling.md'],
+  ['Diagnostics', 'Stack snapshots, traces, dumps, runners, artifact integrity, and safety limits.', 'https://github.com/poodlelab/tracebag/blob/main/docs/diagnostic-jobs.md'],
+  ['Incidents', 'Guided captures, timelines, notes, evidence, and portable Tracebag exports.', 'https://github.com/poodlelab/tracebag/blob/main/docs/incidents.md'],
+  ['Local analysis', 'Stack groups, trace hot paths, correlations, confidence, and limitations.', 'https://github.com/poodlelab/tracebag/blob/main/docs/local-analysis.md'],
+  ['Operations', 'Upgrade, rollback, backup, restore, retention, and recovery.', 'https://github.com/poodlelab/tracebag/blob/main/docs/operations.md'],
+  ['Security', 'Docker access, exposure controls, sensitive evidence, and reporting.', `${base}security/`],
+  ['Architecture', 'Trust boundaries, components, data model, and long-term direction.', 'https://github.com/poodlelab/tracebag/blob/main/docs/architecture.md'],
+];
+---
+
+<BaseLayout title="Documentation — Tracebag" description="Install, configure, operate, and understand Tracebag.">
+  <header class="page-hero shell narrow">
+    <p class="eyebrow">Documentation</p>
+    <h1>Operate Tracebag with the boundaries visible.</h1>
+    <p class="lead">Start small, opt in deliberately, and preserve the exact evidence needed to explain a difficult .NET container incident.</p>
+  </header>
+  <section class="section section-muted">
+    <div class="shell docs-grid">
+      {docs.map(([title, copy, href], index) => (
+        <a class="doc-card" href={href}>
+          <span>{String(index + 1).padStart(2, '0')}</span>
+          <h2>{title}</h2>
+          <p>{copy}</p>
+          <b aria-hidden="true">→</b>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .docs-grid { display: grid; gap: 1rem; grid-template-columns: repeat(3, 1fr); }
+  .doc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); display: grid; min-height: 14rem; padding: 1.4rem; text-decoration: none; transition: border 150ms ease, transform 150ms ease; }
+  .doc-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .doc-card span { color: var(--accent); font: 0.7rem var(--mono); }
+  .doc-card h2 { align-self: end; font-size: 1.1rem; margin: 2rem 0 0.55rem; }
+  .doc-card p { color: var(--muted); font-size: 0.85rem; line-height: 1.55; margin: 0; }
+  .doc-card b { color: var(--accent); justify-self: end; margin-top: 1rem; }
+  @media (max-width: 800px) { .docs-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .docs-grid { grid-template-columns: 1fr; } }
+</style>

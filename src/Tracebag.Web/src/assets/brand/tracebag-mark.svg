@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title description">
+  <title id="title">Tracebag</title>
+  <desc id="description">A diagnostic trace held inside an evidence bag.</desc>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="#0B1715" stroke="#285A50" stroke-width="2"/>
+  <path d="M16 23.5h32v22a5.5 5.5 0 0 1-5.5 5.5h-21a5.5 5.5 0 0 1-5.5-5.5v-22Z" fill="#102924" stroke="#5EEAD4" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M24 23.5v-3a8 8 0 0 1 16 0v3" fill="none" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round"/>
+  <path d="M20.5 36h6l3.2-7 5 14 3.2-7h5.6" fill="none" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

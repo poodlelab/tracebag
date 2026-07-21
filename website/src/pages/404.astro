@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found — Tracebag" description="The requested Tracebag page could not be found.">
+  <section class="page-hero shell narrow">
+    <p class="eyebrow">404 / no evidence found</p>
+    <h1>This path went cold.</h1>
+    <p class="lead">The page may have moved, or the link may be from a different release.</p>
+    <a class="button" href={import.meta.env.BASE_URL}>Return home</a>
+  </section>
+</BaseLayout>

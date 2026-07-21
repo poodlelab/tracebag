@@ -1,0 +1,74 @@
+@if (!authReady()) {
+  <main class="login-shell boot-shell">
+    <section class="boot-card" aria-live="polite">
+      <tb-brand-mark class="large" />
+      <strong>Tracebag</strong>
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Connecting to your workspace…</p>
+    </section>
+  </main>
+} @else if (!store.authenticated()) {
+  <router-outlet></router-outlet>
+} @else {
+  <main class="app-shell">
+    <aside class="app-sidebar">
+      <a class="brand" routerLink="/containers" aria-label="Tracebag home">
+        <tb-brand-mark />
+        <span><strong>Tracebag</strong><small>Container diagnostics</small></span>
+      </a>
+
+      <nav class="side-nav" aria-label="Primary navigation">
+        <a routerLink="/containers" routerLinkActive="active"><tb-icon name="container" /> <span>Containers</span></a>
+        <a routerLink="/incidents" routerLinkActive="active"><tb-icon name="incident" /> <span>Incidents</span></a>
+        <a routerLink="/recordings" routerLinkActive="active"><tb-icon name="recording" /> <span>Recordings</span></a>
+        <a routerLink="/artifacts" routerLinkActive="active"><tb-icon name="archive" /> <span>Artifacts</span></a>
+        <a routerLink="/system" routerLinkActive="active"><tb-icon name="server" /> <span>System</span></a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="environment-card">
+          <span class="status-dot ok"></span>
+          <span><strong>Self-hosted</strong><small>Docker connected</small></span>
+        </div>
+        <div class="user-row">
+          <span class="user-avatar"><tb-icon name="user" /></span>
+          <span class="user-copy"><strong>{{ store.user() }}</strong><small>Administrator</small></span>
+          <button type="button" class="icon-button quiet" (click)="logout()" aria-label="Sign out" title="Sign out"><tb-icon name="logout" /></button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="app-main">
+      <header class="app-topbar">
+        <div class="mobile-brand">
+          <tb-brand-mark class="small" />
+          <strong>Tracebag</strong>
+        </div>
+        <div class="section-name"><span>Workspace</span><strong>{{ currentSection() }}</strong></div>
+        <button type="button" class="button secondary compact" (click)="loadContainers()" [disabled]="store.loading()">
+          <tb-icon name="refresh" /> Refresh data
+        </button>
+      </header>
+
+      @if (store.error()) {
+        <section class="global-alert" role="alert">
+          <tb-icon name="warning" />
+          <span>{{ store.error() }}</span>
+          <button type="button" class="icon-button quiet" (click)="dismissError()" aria-label="Dismiss error">×</button>
+        </section>
+      }
+
+      <section class="route-host" [attr.aria-busy]="store.loading()">
+        <router-outlet></router-outlet>
+      </section>
+    </section>
+
+    <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+      <a routerLink="/containers" routerLinkActive="active"><tb-icon name="container" /><span>Containers</span></a>
+      <a routerLink="/incidents" routerLinkActive="active"><tb-icon name="incident" /><span>Incidents</span></a>
+      <a routerLink="/recordings" routerLinkActive="active"><tb-icon name="recording" /><span>Recordings</span></a>
+      <a routerLink="/artifacts" routerLinkActive="active"><tb-icon name="archive" /><span>Artifacts</span></a>
+      <a routerLink="/system" routerLinkActive="active"><tb-icon name="server" /><span>System</span></a>
+    </nav>
+  </main>
+}

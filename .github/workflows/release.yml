@@ -1,0 +1,348 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate exact release source
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Check out exact event commit with history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Fetch and validate mainline ancestry
+        id: release
+        shell: bash
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          ./scripts/validate-release-ref.sh "${GITHUB_REF_NAME}" "${GITHUB_SHA}" origin/main
+          echo "version=${GITHUB_REF_NAME#v}" >>"${GITHUB_OUTPUT}"
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            src/Tracebag.Web/package-lock.json
+            website/package-lock.json
+      - name: Verify complete source tree at tag
+        run: ./scripts/verify.sh
+      - name: Generate release license evidence
+        run: node scripts/generate-license-report.mjs --output supply-chain-evidence/source-licenses.json
+      - name: Upload release license evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-source-licenses-${{ github.ref_name }}
+          path: supply-chain-evidence/source-licenses.json
+          if-no-files-found: error
+          retention-days: 90
+
+  acceptance:
+    name: Release acceptance / ${{ matrix.suite }}
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: release-install
+            script: ./scripts/verify-runtime.sh
+          - suite: diagnostics
+            script: ./scripts/verify-diagnostics-runtime.sh
+    steps:
+      - name: Check out exact release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - name: Run release Compose acceptance
+        run: ${{ matrix.script }}
+
+  publish-images:
+    name: Publish immutable image / ${{ matrix.image }}
+    needs: [validate, acceptance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: tracebag
+            dockerfile: Dockerfile
+          - image: tracebag-demo-api
+            dockerfile: demo/Dockerfile
+          - image: tracebag-runner-dotnet-8
+            dockerfile: runners/dotnet-8/Dockerfile
+          - image: tracebag-runner-dotnet-9
+            dockerfile: runners/dotnet-9/Dockerfile
+          - image: tracebag-runner-dotnet-10
+            dockerfile: runners/dotnet-10/Dockerfile
+    env:
+      IMAGE: ghcr.io/poodlelab/${{ matrix.image }}
+      VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - name: Check out exact release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Log in to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Refuse to overwrite an immutable version
+        shell: bash
+        run: |
+          if docker buildx imagetools inspect "${IMAGE}:${VERSION}" >/dev/null 2>&1; then
+            echo "${IMAGE}:${VERSION} already exists. Never overwrite a released or partially published version." >&2
+            echo "Fix the release input, increment VERSION, and publish a new patch version." >&2
+            exit 1
+          fi
+      - name: Generate immutable image metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=${{ env.VERSION }}
+            type=sha,format=long,prefix=sha-
+          labels: |
+            org.opencontainers.image.title=Tracebag ${{ matrix.image }}
+            org.opencontainers.image.licenses=Apache-2.0
+      - name: Build and publish exact multi-architecture image
+        id: build
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=release-${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=release-${{ matrix.image }}
+      - name: Record exact published digest and attestations
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        shell: bash
+        run: |
+          mkdir -p supply-chain-evidence
+          printf '%s\n' "${DIGEST}" >"supply-chain-evidence/${{ matrix.image }}.digest"
+          docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --raw >"supply-chain-evidence/${{ matrix.image }}-manifest.json"
+          docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{json .SBOM}}' >"supply-chain-evidence/${{ matrix.image }}-sbom.json"
+          docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{json .Provenance}}' >"supply-chain-evidence/${{ matrix.image }}-provenance.json"
+          jq -e '. != null' "supply-chain-evidence/${{ matrix.image }}-sbom.json" >/dev/null
+          jq -e '. != null' "supply-chain-evidence/${{ matrix.image }}-provenance.json" >/dev/null
+      - name: Scan exact amd64 release digest
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_PLATFORM: linux/amd64
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
+          format: json
+          output: supply-chain-evidence/${{ matrix.image }}-amd64-vulnerabilities.json
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: 0
+          version: v0.70.0
+      - name: Scan exact arm64 release digest
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_PLATFORM: linux/arm64
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
+          format: json
+          output: supply-chain-evidence/${{ matrix.image }}-arm64-vulnerabilities.json
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: 0
+          version: v0.70.0
+          skip-setup-trivy: true
+      - name: Enforce release vulnerability policy
+        shell: bash
+        run: |
+          node scripts/evaluate-trivy-report.mjs "supply-chain-evidence/${{ matrix.image }}-amd64-vulnerabilities.json" "${{ matrix.image }} (amd64)"
+          node scripts/evaluate-trivy-report.mjs "supply-chain-evidence/${{ matrix.image }}-arm64-vulnerabilities.json" "${{ matrix.image }} (arm64)"
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Sign exact image manifest with release identity
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "${IMAGE}@${DIGEST}"
+      - name: Retain release evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-evidence-${{ matrix.image }}-${{ github.ref_name }}
+          path: supply-chain-evidence/
+          if-no-files-found: ignore
+          retention-days: 90
+
+  verify-release-images:
+    name: Verify all published manifests and signatures
+    needs: [validate, publish-images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    env:
+      VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - name: Download exact-digest release evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: release-evidence-*-${{ github.ref_name }}
+          path: supply-chain-evidence
+          merge-multiple: true
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Log in to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Verify all five immutable manifests, attestations, and signatures
+        shell: bash
+        run: |
+          identity="https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${GITHUB_REF_NAME}"
+          issuer="https://token.actions.githubusercontent.com"
+          for name in tracebag tracebag-demo-api tracebag-runner-dotnet-8 tracebag-runner-dotnet-9 tracebag-runner-dotnet-10; do
+            image="ghcr.io/poodlelab/${name}"
+            digest_file="supply-chain-evidence/${name}.digest"
+            test -s "${digest_file}"
+            expected="$(tr -d '[:space:]' <"${digest_file}")"
+            [[ "${expected}" =~ ^sha256:[0-9a-f]{64}$ ]]
+            raw_manifest="$(mktemp)"
+            docker buildx imagetools inspect "${image}:${VERSION}" --raw >"${raw_manifest}"
+            actual="sha256:$(sha256sum "${raw_manifest}" | awk '{print $1}')"
+            rm -f "${raw_manifest}"
+            [[ "${actual}" == "${expected}" ]] || {
+              echo "Digest mismatch for ${image}:${VERSION}: expected ${expected}, got ${actual}" >&2
+              exit 1
+            }
+            docker buildx imagetools inspect "${image}@${expected}" --format '{{json .SBOM}}' | jq -e '. != null' >/dev/null
+            docker buildx imagetools inspect "${image}@${expected}" --format '{{json .Provenance}}' | jq -e '. != null' >/dev/null
+            cosign verify \
+              --certificate-identity "${identity}" \
+              --certificate-oidc-issuer "${issuer}" \
+              "${image}@${expected}" >/dev/null
+          done
+
+  published-smoke:
+    name: Install and test exact GHCR release
+    needs: [validate, verify-release-images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Check out exact release install files
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - name: Log in to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Smoke test published images without rebuilding
+        run: ./scripts/verify-published-runtime.sh "${GITHUB_REF_NAME#v}" ghcr.io/poodlelab
+
+  promote-aliases:
+    name: Promote convenience aliases
+    needs: [validate, published-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    env:
+      VERSION: ${{ needs.validate.outputs.version }}
+    steps:
+      - name: Download exact-digest release evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: release-evidence-*-${{ github.ref_name }}
+          path: supply-chain-evidence
+          merge-multiple: true
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Log in to GHCR
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Move minor and latest aliases only after release verification
+        shell: bash
+        run: |
+          minor="${VERSION%.*}"
+          for name in tracebag tracebag-demo-api tracebag-runner-dotnet-8 tracebag-runner-dotnet-9 tracebag-runner-dotnet-10; do
+            image="ghcr.io/poodlelab/${name}"
+            digest="$(tr -d '[:space:]' <"supply-chain-evidence/${name}.digest")"
+            [[ "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+            docker buildx imagetools inspect "${image}@${digest}" >/dev/null
+            docker buildx imagetools create \
+              --tag "${image}:${minor}" \
+              --tag "${image}:latest" \
+              "${image}@${digest}"
+          done
+
+  github-release:
+    name: Publish GitHub release
+    needs: [validate, verify-release-images, published-smoke, promote-aliases]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out exact release commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - name: Publish release notes and install files
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          generate_release_notes: true
+          files: |
+            deploy/compose.release.yaml
+            deploy/compose.demo.release.yaml
+            deploy/.env.release.example

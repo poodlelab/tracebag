@@ -1,0 +1,27 @@
+---
+import markUrl from '../../../src/Tracebag.Web/src/assets/brand/tracebag-mark.svg?url';
+
+interface Props {
+  size?: string;
+}
+
+const { size = '2.4rem' } = Astro.props;
+---
+
+<img
+  class="brand-mark"
+  src={markUrl}
+  alt=""
+  aria-hidden="true"
+  width="64"
+  height="64"
+  style={`--mark-size: ${size}`}
+/>
+
+<style>
+  .brand-mark {
+    flex: 0 0 auto;
+    height: var(--mark-size);
+    width: var(--mark-size);
+  }
+</style>

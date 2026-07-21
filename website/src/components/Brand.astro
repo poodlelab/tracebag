@@ -1,0 +1,44 @@
+---
+import BrandMark from './BrandMark.astro';
+
+const { compact = false } = Astro.props;
+---
+
+<a class:list={['brand', { compact }]} href={import.meta.env.BASE_URL} aria-label="Tracebag home">
+  <BrandMark />
+  <span>
+    <strong>Tracebag</strong>
+    <small>Container diagnostics</small>
+  </span>
+</a>
+
+<style>
+  .brand {
+    align-items: center;
+    color: var(--text);
+    display: inline-flex;
+    gap: 0.7rem;
+    text-decoration: none;
+  }
+
+  span {
+    display: grid;
+    line-height: 1.05;
+  }
+
+  small {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.57rem;
+    letter-spacing: 0.035em;
+    margin-top: 0.28rem;
+    text-transform: uppercase;
+  }
+
+  strong {
+    font-size: 1.08rem;
+    letter-spacing: -0.02em;
+  }
+
+  .compact small { display: none; }
+</style>

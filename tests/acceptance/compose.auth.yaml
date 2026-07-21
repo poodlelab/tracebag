@@ -1,0 +1,18 @@
+services:
+  tracebag-auth-proxy:
+    image: caddy:2.10.0-alpine
+    depends_on:
+      tracebag:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1::443"
+    volumes:
+      - ./tests/acceptance/Caddyfile:/etc/caddy/Caddyfile:ro
+    read_only: true
+    tmpfs:
+      - /config
+      - /data
+    labels:
+      tracebag.internal: "true"
+    security_opt:
+      - no-new-privileges:true

@@ -1,0 +1,60 @@
+services:
+  tracebag-demo-api:
+    image: ${TRACEBAG_DEMO_IMAGE:-tracebag-demo-api:dev}
+    build:
+      context: ..
+      dockerfile: demo/Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      DOTNET_EnableDiagnostics: "1"
+    ports:
+      - "${TRACEBAG_DEMO_BIND_ADDRESS:-127.0.0.1}:${TRACEBAG_DEMO_PORT:-9091}:8080"
+    volumes:
+      - tracebag-demo-dotnet-tmp:/tmp
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "-T", "3", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    labels:
+      tracebag.enabled: "true"
+      tracebag.displayName: "Tracebag Demo API"
+      tracebag.kind: "dotnet"
+      tracebag.dotnet.runtime: "8"
+      tracebag.logs.persist: "true"
+      tracebag.logs.parser: "json"
+      tracebag.logs.retentionDays: "7"
+      tracebag.dotnet.tmpVolume: ${TRACEBAG_DEMO_DOTNET_TMP_VOLUME:-tracebag_demo_dotnet_tmp}
+      tracebag.restart.enabled: "false"
+      tracebag.diagnostics.fullDump: ${TRACEBAG_DEMO_FULL_DUMP_ENABLED:-false}
+    cpus: 2.0
+    mem_limit: 768m
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+
+  tracebag-demo-traffic:
+    image: ${TRACEBAG_DEMO_IMAGE:-tracebag-demo-api:dev}
+    profiles: ["traffic"]
+    restart: unless-stopped
+    init: true
+    command: ["traffic-generator", "http://tracebag-demo-api:8080"]
+    environment:
+      TRACEBAG_DEMO_TRAFFIC_INTERVAL_MS: ${TRACEBAG_DEMO_TRAFFIC_INTERVAL_MS:-1000}
+    depends_on:
+      tracebag-demo-api:
+        condition: service_healthy
+    labels:
+      tracebag.internal: "true"
+    cpus: 0.25
+    mem_limit: 128m
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  tracebag-demo-dotnet-tmp:
+    name: ${TRACEBAG_DEMO_DOTNET_TMP_VOLUME:-tracebag_demo_dotnet_tmp}

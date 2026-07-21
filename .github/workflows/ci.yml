@@ -1,0 +1,181 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Source, tests, and static site
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            src/Tracebag.Web/package-lock.json
+            website/package-lock.json
+      - name: Verify repository
+        run: ./scripts/verify.sh
+      - name: Audit all dependency trees
+        run: ./scripts/verify-dependencies.sh
+      - name: Generate source license evidence
+        run: node scripts/generate-license-report.mjs --output supply-chain-evidence/source-licenses.json
+      - name: Retain source license evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: source-license-evidence-${{ github.sha }}
+          path: supply-chain-evidence/source-licenses.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Ensure builds leave a clean tree
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+            git status --short
+            echo "Build or test generated files that are not ignored."
+            exit 1
+          fi
+
+  docker-build:
+    name: Container / ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: tracebag
+            dockerfile: Dockerfile
+          - name: demo-api
+            dockerfile: demo/Dockerfile
+          - name: runner-dotnet-8
+            dockerfile: runners/dotnet-8/Dockerfile
+          - name: runner-dotnet-9
+            dockerfile: runners/dotnet-9/Dockerfile
+          - name: runner-dotnet-10
+            dockerfile: runners/dotnet-10/Dockerfile
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Prepare supply-chain evidence directory
+        run: mkdir -p supply-chain-evidence
+      - name: Build image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: tracebag-ci/${{ matrix.name }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+      - name: Scan complete image inventory
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: tracebag-ci/${{ matrix.name }}:${{ github.sha }}
+          format: json
+          output: supply-chain-evidence/${{ matrix.name }}-vulnerabilities.json
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: 0
+          version: v0.70.0
+      - name: Enforce container vulnerability policy
+        run: node scripts/evaluate-trivy-report.mjs supply-chain-evidence/${{ matrix.name }}-vulnerabilities.json ${{ matrix.name }}
+      - name: Generate image SPDX SBOM
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: tracebag-ci/${{ matrix.name }}:${{ github.sha }}
+          format: spdx-json
+          output: supply-chain-evidence/${{ matrix.name }}.spdx.json
+          scanners: vuln
+          exit-code: 0
+          version: v0.70.0
+      - name: Retain image scan and SBOM evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: image-supply-chain-${{ matrix.name }}-${{ github.sha }}
+          path: supply-chain-evidence/
+          if-no-files-found: error
+          retention-days: 30
+
+  compose-e2e:
+    name: Compose E2E / ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: http-postgresql
+            script: ./scripts/verify-http-postgres-runtime.sh
+          - suite: browser
+            script: ./scripts/verify-browser-runtime.sh
+          - suite: backup-restore
+            script: ./scripts/verify-backup-restore-runtime.sh
+          - suite: diagnostics
+            script: ./scripts/verify-diagnostics-runtime.sh
+          - suite: release-install
+            script: ./scripts/verify-runtime.sh
+          - suite: authentication
+            script: ./scripts/verify-auth-runtime.sh
+          - suite: durable-retention
+            script: ./scripts/verify-retention-runtime.sh
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up .NET for PostgreSQL integration
+        if: matrix.suite == 'http-postgresql'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Set up Node.js for browser acceptance
+        if: matrix.suite == 'browser'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            tests/browser/package-lock.json
+            website/package-lock.json
+      - name: Install Chromium for browser acceptance
+        if: matrix.suite == 'browser'
+        run: |
+          npm --prefix tests/browser ci
+          cd tests/browser
+          npx playwright install --with-deps chromium
+      - name: Run Compose acceptance test
+        run: ${{ matrix.script }}
+      - name: Retain browser evidence
+        if: always() && matrix.suite == 'browser'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser-acceptance-${{ github.sha }}
+          path: |
+            tests/browser/playwright-report/
+            tests/browser/test-results/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Security model — Tracebag" description="Understand Tracebag's Docker access, diagnostic data risks, and operational security boundaries.">
+  <header class="page-hero shell narrow">
+    <p class="eyebrow">Security model</p>
+    <h1>Powerful diagnostics, explicit boundaries.</h1>
+    <p class="lead">Tracebag does not pretend that Docker access is low privilege. The product narrows its interface and makes the remaining operational responsibility visible.</p>
+  </header>
+
+  <article class="section section-muted">
+    <div class="shell narrow prose">
+      <div class="callout"><strong>Core warning:</strong> access to the Docker socket is effectively host-level access. Run Tracebag only on a host you control and never expose its port directly to an untrusted network.</div>
+
+      <h2>Default protections</h2>
+      <ul>
+        <li>Tracebag binds to <code>127.0.0.1</code> and requires authentication by default.</li>
+        <li>Login work is size-bounded and rate-limited per client, while authenticated mutations require a CSRF token.</li>
+        <li>The application emits a reviewed CSP, frame denial, MIME-sniffing protection, a restrictive referrer policy, and HSTS over HTTPS.</li>
+        <li>Containers remain invisible until they carry the configured opt-in label.</li>
+        <li>The browser cannot submit shell commands, arbitrary Docker requests, image names, mounts, or output paths.</li>
+        <li>Diagnostic operations use fixed profiles with duration, concurrency, storage, and daily limits.</li>
+        <li>Temporary runners have networking disabled and are removed after the operation.</li>
+        <li>Full process dumps require a global switch, a target label, and exact per-request confirmation.</li>
+      </ul>
+
+      <h2>Diagnostic data is sensitive</h2>
+      <p>Logs, traces, stack snapshots, GC dumps, full dumps, and incident exports can contain credentials, personal information, request data, and business secrets. Tracebag stores data locally, but the operator controls access, retention, backup, and deletion.</p>
+
+      <h2>Remote access</h2>
+      <p>Keep the application on localhost and terminate HTTPS through a trusted reverse proxy. Trust forwarded headers only from the proxy's exact address or controlled network, restrict access at the network layer, and do not publish PostgreSQL.</p>
+
+      <h2>External services</h2>
+      <p>Analysis runs locally. Tracebag does not send evidence to external analysis providers.</p>
+
+      <h2>Report a vulnerability</h2>
+      <p>Do not include real logs, traces, dumps, secrets, or customer data in a public issue. Use GitHub's private vulnerability reporting channel for the repository.</p>
+      <a class="button" href="https://github.com/poodlelab/tracebag/security/advisories/new">Report privately</a>
+    </div>
+  </article>
+</BaseLayout>

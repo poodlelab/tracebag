@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
+const shots = [
+  ['demo-contention-overview.jpg', 'Correlated timeline', 'A single ordered view of the capture and every evidence source.'],
+  ['demo-contention-findings.jpg', 'Local findings', 'Versioned findings with confidence, limitations, and linked evidence.'],
+  ['demo-contention-correlation.jpg', 'Cross-signal correlation', 'Runtime pressure, trace events, and logs aligned around the incident window.'],
+  ['demo-contention-evidence.jpg', 'Raw evidence', 'Navigate from an explanation back to the exact captured source.'],
+] as const;
+---
+
+<BaseLayout title="Guided demo — Tracebag" description="Generate bounded .NET failure scenarios and investigate them with Tracebag.">
+  <header class="page-hero shell narrow">
+    <p class="eyebrow">A failure lab in a container</p>
+    <h1>Break the demo API. Keep the receipts.</h1>
+    <p class="lead">The optional demo workload creates realistic but bounded diagnostic scenarios so every major Tracebag workflow can be evaluated without risking a production service.</p>
+  </header>
+
+  <section class="section section-muted">
+    <div class="shell">
+      <div class="scenario-grid">
+        <article><span>CPU</span><h2>Heavy computation</h2><p>Drive several bounded workers and identify hot paths with counters and an EventPipe trace.</p></article>
+        <article><span>LOCK</span><h2>Contention</h2><p>Stall requests behind a shared monitor and correlate queues, stacks, and contention events.</p></article>
+        <article><span>POOL</span><h2>ThreadPool starvation</h2><p>Block workers long enough to observe queue growth and slow request completion.</p></article>
+        <article><span>MEM</span><h2>Allocation pressure</h2><p>Create bounded allocations and inspect GC heap size, collection rate, and artifacts.</p></article>
+        <article><span>HTTP</span><h2>Downstream failure</h2><p>Generate structured errors and exceptions with consistent request correlation.</p></article>
+        <article><span>LAT</span><h2>Slow requests</h2><p>Add controlled latency while normal traffic continues in the background.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section shell narrow prose">
+    <p class="eyebrow">Published release</p>
+    <h2>Launch Tracebag and the demo together</h2>
+    <p>After completing the Docker quickstart, download the matching demo overlay and start the bounded workload:</p>
+    <pre class="code-block"><code>curl -fsSLo compose.demo.yaml \
+  https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/compose.demo.release.yaml
+
+docker compose --env-file .env \
+  -f compose.yaml -f compose.demo.yaml pull
+docker compose --env-file .env \
+  -f compose.yaml -f compose.demo.yaml \
+  up -d --wait tracebag-postgres tracebag tracebag-demo-api</code></pre>
+    <p>Tracebag opens at <a href="http://localhost:9090">localhost:9090</a> and the demo control API at <a href="http://localhost:9091">localhost:9091</a>. Every synthetic workload has duration, resource, and concurrency caps plus a reset endpoint.</p>
+    <p>From a source checkout, <code>./scripts/demo-up.sh --traffic</code> builds the same stack locally and adds normal background traffic.</p>
+    <a class="button" href="https://github.com/poodlelab/tracebag/blob/main/docs/demo-tour.md">Follow the ten-minute tour</a>
+  </section>
+
+  <section class="section gallery-section">
+    <div class="shell">
+      <div class="section-heading">
+        <p class="eyebrow">Real capture</p>
+        <h2>A lock-contention incident, end to end.</h2>
+      </div>
+      <div class="gallery">
+        {shots.map(([file, title, copy]) => (
+          <figure>
+            <div class="screenshot-scroll" tabindex="0" aria-label={`Scrollable ${title.toLowerCase()} screenshot`}>
+              <img src={`${base}screenshots/${file}`} alt={`Tracebag ${title.toLowerCase()} screenshot`} width="1265" height="712" loading="lazy" />
+            </div>
+            <div class="screenshot-scroll-meta">
+              <span>Swipe to inspect</span>
+              <a href={`${base}screenshots/${file}`}>Open full size <span aria-hidden="true">↗</span></a>
+            </div>
+            <figcaption><strong>{title}</strong><span>{copy}</span></figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .scenario-grid { display: grid; gap: 1rem; grid-template-columns: repeat(3, 1fr); }
+  .scenario-grid article { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+  .scenario-grid span { color: var(--accent); font: 0.7rem var(--mono); }
+  .scenario-grid h2 { font-size: 1.05rem; margin: 2rem 0 0.7rem; }
+  .scenario-grid p { color: var(--muted); font-size: 0.88rem; line-height: 1.65; margin: 0; }
+  .gallery-section { border-top: 1px solid var(--border); }
+  .gallery { display: grid; gap: 1.2rem; grid-template-columns: repeat(2, 1fr); }
+  figure { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: 0; overflow: hidden; }
+  figure img { aspect-ratio: 1265 / 712; object-fit: cover; }
+  figure .screenshot-scroll-meta { border-bottom: 1px solid var(--border); }
+  figcaption { display: grid; gap: 0.4rem; padding: 1.2rem; }
+  figcaption strong { font-size: 0.92rem; }
+  figcaption span { color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
+  @media (max-width: 760px) { .scenario-grid, .gallery { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a focused improvement to Tracebag.
+title: "[Feature]: "
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Diagnostic problem
+      description: What investigation or operational problem is difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the result rather than a required implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Security and operational boundaries
+      description: Note any new Docker privileges, data disclosure, storage, or compatibility implications.
+    validations:
+      required: true

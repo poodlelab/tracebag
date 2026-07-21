@@ -1,0 +1,54 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /src/Tracebag.Web
+    schedule:
+      interval: weekly
+    groups:
+      angular:
+        patterns: ['@angular/*', '@ngrx/*', 'rxjs', 'zone.js']
+  - package-ecosystem: npm
+    directory: /website
+    schedule:
+      interval: weekly
+    groups:
+      website:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /tests/browser
+    schedule:
+      interval: weekly
+    groups:
+      browser-tests:
+        patterns: ['*']
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /demo
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /runners/dotnet-8
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /runners/dotnet-9
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /runners/dotnet-10
+    schedule:
+      interval: weekly

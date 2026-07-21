@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a reproducible Tracebag defect without sensitive evidence.
+title: "[Bug]: "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: Do not attach production logs, traces, dumps, credentials, or incident exports.
+  - type: input
+    id: version
+    attributes:
+      label: Tracebag version
+      placeholder: 0.1.0 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Docker/Compose versions, host OS, CPU architecture, and target .NET runtime.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide the smallest synthetic sequence that demonstrates the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, customer data, logs, traces, dumps, and other sensitive evidence.
+          required: true

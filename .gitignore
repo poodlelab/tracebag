@@ -1,0 +1,202 @@
+# -----------------------------------------------------------------------------
+# Local development archive
+# -----------------------------------------------------------------------------
+# Planning documents, development histories, retired prototypes, and internal
+# verification evidence live here and are never part of a release checkout.
+/archive/
+
+# -----------------------------------------------------------------------------
+# Operating system files
+# -----------------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# -----------------------------------------------------------------------------
+# Editors and IDEs
+# -----------------------------------------------------------------------------
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# JetBrains Rider
+*.sln.iml
+
+# -----------------------------------------------------------------------------
+# .NET build and test output
+# -----------------------------------------------------------------------------
+**/bin/
+**/obj/
+**/publish/
+**/TestResults/
+**/BenchmarkDotNet.Artifacts/
+/artifacts/
+/supply-chain-evidence/
+
+*.nupkg
+*.snupkg
+*.deps.json
+*.runtimeconfig.dev.json
+
+# Keep intentional runtimeconfig files if they are ever added as source.
+!**/Properties/*.json
+
+# .NET coverage and profiling output
+coverage/
+coverage-*/
+*.coverage
+*.coveragexml
+*.coverlet.json
+*.opencover.xml
+*.cobertura.xml
+*.trx
+*.diagsession
+*.nettrace
+*.gcdump
+*.dmp
+*.speedscope.json
+
+# -----------------------------------------------------------------------------
+# Node, Angular, and product website output
+# -----------------------------------------------------------------------------
+**/node_modules/
+**/dist/
+**/.angular/
+**/.cache/
+**/.parcel-cache/
+**/.turbo/
+**/.vite/
+**/.astro/
+**/.next/
+**/.nuxt/
+**/.output/
+**/out-tsc/
+
+*.tsbuildinfo
+.npm/
+.yarn/cache/
+.yarn/install-state.gz
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend and browser test output
+**/playwright-report/
+**/test-results/
+**/blob-report/
+**/cypress/screenshots/
+**/cypress/videos/
+
+# Keep dependency lockfiles committed for reproducible builds.
+!**/package-lock.json
+!**/npm-shrinkwrap.json
+!**/pnpm-lock.yaml
+!**/yarn.lock
+
+# -----------------------------------------------------------------------------
+# Local configuration and secrets
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!**/.env.example
+!**/.env.*.example
+
+*.local.json
+appsettings.Local.json
+appsettings.*.Local.json
+secrets/
+**/secrets/
+
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.pem
+*.key
+
+# ASP.NET Core user-secrets are normally outside the repository, but ignore a
+# local copy if one is mounted during development.
+.microsoft/usersecrets/
+
+# -----------------------------------------------------------------------------
+# Tracebag runtime data
+# -----------------------------------------------------------------------------
+/data/
+/backups/
+/tmp/
+/.tracebag/
+
+**/tracebag-data/
+**/tracebag-artifacts/
+**/tracebag-postgres/
+**/.tracebag-data/
+
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.pid
+
+# Generated diagnostic and incident bundles
+*.tracebag
+*.zip.part
+
+# -----------------------------------------------------------------------------
+# Logs and temporary files
+# -----------------------------------------------------------------------------
+*.log
+/logs/
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# -----------------------------------------------------------------------------
+# Docker and local deployment overrides
+# -----------------------------------------------------------------------------
+compose.override.yaml
+compose.override.yml
+docker-compose.override.yaml
+docker-compose.override.yml
+
+# Private server deployment tooling and host-specific configuration. The
+# distributable Compose files above remain versioned; everything in this
+# directory is intentionally local-only.
+/deploy/server/
+
+# Local image archives
+*.tar
+*.tar.gz
+
+# -----------------------------------------------------------------------------
+# Documentation and static-site tooling
+# -----------------------------------------------------------------------------
+.docusaurus/
+.vuepress/dist/
+site/
+
+# -----------------------------------------------------------------------------
+# Miscellaneous generated output
+# -----------------------------------------------------------------------------
+.sass-cache/
+.eslintcache
+.stylelintcache
+.nyc_output/
+reports/

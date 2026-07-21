@@ -1,0 +1,8 @@
+{
+	admin off
+}
+
+https://tracebag.test {
+	tls internal
+	reverse_proxy tracebag:8080
+}

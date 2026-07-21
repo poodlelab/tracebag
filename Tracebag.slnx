@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/demo/">
+    <Project Path="demo/Tracebag.Demo.Api/Tracebag.Demo.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Tracebag.Api/Tracebag.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tracebag.DemoTests/Tracebag.DemoTests.csproj" />
+    <Project Path="tests/Tracebag.IntegrationTests/Tracebag.IntegrationTests.csproj" />
+    <Project Path="tests/Tracebag.UnitTests/Tracebag.UnitTests.csproj" />
+  </Folder>
+</Solution>

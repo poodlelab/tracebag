@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="AI-assisted development — Tracebag"
+  description="How Tracebag uses AI coding tools while preserving human ownership, verification, security, and open-source accountability."
+>
+  <header class="page-hero shell narrow">
+    <p class="eyebrow">Development transparency</p>
+    <h1>Human-directed.<br /><span>AI-assisted.</span></h1>
+    <p class="lead">Tracebag is developed with substantial assistance from AI coding tools. That process is public by design, and it does not lower the engineering or review standard.</p>
+  </header>
+
+  <section class="section section-muted">
+    <div class="shell narrow prose">
+      <h2>How AI is used</h2>
+      <p>AI assists with design exploration, implementation, debugging, tests, documentation, repository maintenance, and visual-asset iteration. The current workflow primarily uses OpenAI Codex and OpenAI image-generation tools.</p>
+
+      <h2>Where responsibility stays</h2>
+      <p>AI tools are assistants, not maintainers. Product direction, architecture, security decisions, review, verification, releases, and ongoing maintenance remain the responsibility of the human maintainer.</p>
+
+      <div class="callout">
+        <strong>AI output is treated as an untrusted draft.</strong> A model's confidence, explanation, or claim that a test passed is not evidence. Changes are accepted only after the implementation and its actual verification results have been inspected.
+      </div>
+
+      <h2>The quality bar</h2>
+      <ul>
+        <li>Every accepted change must be understood and explainable.</li>
+        <li>Security boundaries, failure paths, and recovery behavior require tests.</li>
+        <li>User-facing claims must match implemented and observed behavior.</li>
+        <li>Generated scaffolding, generic filler, and speculative abstractions are removed before review.</li>
+        <li>Third-party code and content still require compatible licensing and provenance.</li>
+      </ul>
+
+      <h2>Open contribution policy</h2>
+      <p>AI-assisted contributions are welcome. Significant assistance must be disclosed together with the tools used, the areas influenced, and the human verification performed. The contributor remains the author and owner of the change.</p>
+
+      <p>The repository includes a detailed <code>AI_USAGE.md</code>, public <code>AGENTS.md</code> instructions, and an AI-assistance section in every pull request. These make both the development method and the rules supplied to coding agents reviewable alongside the source.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  h1 span { color: var(--accent); }
+  .callout strong { color: var(--text); display: block; margin-bottom: 0.35rem; }
+</style>

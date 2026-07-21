@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://poodlelab.github.io/tracebag/sitemap-index.xml

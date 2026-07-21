@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="g" cx="75%" cy="10%"><stop stop-color="#1b5a47"/><stop offset="1" stop-color="#07100e"/></radialGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000" flood-opacity=".32"/></filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <g transform="translate(86 72) scale(1.8)" filter="url(#shadow)">
+    <rect x="2" y="2" width="60" height="60" rx="15" fill="#0B1715" stroke="#285A50" stroke-width="2"/>
+    <path d="M16 23.5h32v22a5.5 5.5 0 0 1-5.5 5.5h-21a5.5 5.5 0 0 1-5.5-5.5v-22Z" fill="#102924" stroke="#5EEAD4" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M24 23.5v-3a8 8 0 0 1 16 0v3" fill="none" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round"/>
+    <path d="M20.5 36h6l3.2-7 5 14 3.2-7h5.6" fill="none" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="225" y="143" fill="#f1f7f4" font-family="system-ui,sans-serif" font-size="48" font-weight="700">Tracebag</text>
+  <text x="228" y="181" fill="#8ba49b" font-family="monospace" font-size="18" letter-spacing="2">CONTAINER DIAGNOSTICS</text>
+  <text x="88" y="340" fill="#f1f7f4" font-family="system-ui,sans-serif" font-size="76" font-weight="700">Catch the problem.</text>
+  <text x="88" y="425" fill="#5EEAD4" font-family="system-ui,sans-serif" font-size="76" font-weight="700">Keep the evidence.</text>
+  <text x="92" y="515" fill="#a7b7b1" font-family="system-ui,sans-serif" font-size="27">Self-hosted diagnostics for Dockerized .NET applications.</text>
+</svg>
