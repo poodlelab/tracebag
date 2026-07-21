@@ -21,6 +21,12 @@ The release workflow scans both platform images at the exact published digest
 and retains the resolved manifest, vulnerability reports, SBOM, provenance, and
 digest as 90-day workflow evidence for every image.
 
+The product-website workflow always builds and uploads its static artifact. Its
+deployment job runs only when the repository variable
+`TRACEBAG_PAGES_ENABLED=true`; set that variable only after GitHub Pages is
+configured to use GitHub Actions. This keeps an unconfigured private repository
+green without publishing the site accidentally.
+
 The pipeline first proves that the event tag, checked-out commit, and `VERSION`
 agree and that the commit is contained in `origin/main`. It then runs complete
 source verification and both release Compose acceptance suites before it writes

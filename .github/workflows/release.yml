@@ -45,6 +45,10 @@ jobs:
           cache-dependency-path: |
             src/Tracebag.Web/package-lock.json
             website/package-lock.json
+      - name: Install repository tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ripgrep
       - name: Verify complete source tree at tag
         run: ./scripts/verify.sh
       - name: Generate release license evidence
