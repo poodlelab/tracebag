@@ -94,11 +94,13 @@ an operator-owned investigation.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `TRACEBAG_ALLOWED_LABEL` | `tracebag.enabled=true` | Required opt-in label expression. |
-| `TRACEBAG_ENVIRONMENT_LABEL` | empty | Optional additional expression, for example `tracebag.environment=prod`. |
+| `TRACEBAG_ENVIRONMENT_LABEL` | empty in the application; `tracebag.environment=production` in the release template | Additional discovery expression. Strongly recommended on shared Docker hosts. Existing labels such as `helfli.stage=test` are supported. |
 | `TRACEBAG_RESTART_ENABLED` | `false` | Global gate for container restart. Targets also require their restart label. |
 
 An empty environment-label setting means the allowed label is the only global
-discovery filter. See [labels.md](labels.md).
+discovery filter. The System page reports this as needing attention because a
+shared host may contain opted-in containers from unrelated Compose projects or
+another Tracebag installation. See [labels.md](labels.md).
 
 ## Diagnostic runners
 
@@ -122,6 +124,10 @@ discovery filter. See [labels.md](labels.md).
 
 All runner images and tool packages are pinned. Runtime selection uses the
 target's `tracebag.dotnet.runtime` label and rejects unsupported explicit values.
+Released installations download only the selected runtime runner on first use;
+operators may pre-pull it when registry access is restricted during incidents.
+Private-registry runners must be pre-pulled because Tracebag does not accept or
+store registry credentials.
 Every runner uses the same network-disabled, read-only, capability-free,
 no-new-privileges baseline with init and bounded memory, CPU, and PIDs. The
 defaults suit the bundled tools and demo; raise them only when a known large

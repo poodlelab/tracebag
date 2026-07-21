@@ -19,6 +19,7 @@ public sealed class DiagnosticRunnerService
     private readonly DockerLogService _dockerLogService;
     private readonly CounterPresetCatalog _counterPresetCatalog;
     private readonly DiagnosticRunnerCatalog _runnerCatalog;
+    private readonly DiagnosticRunnerImageService _runnerImages;
     private readonly DiagnosticRunnerContainerPolicy _runnerPolicy;
     private readonly CounterSampleParser _counterSampleParser;
     private readonly DiagnosticSessionRegistry _sessionRegistry;
@@ -33,6 +34,7 @@ public sealed class DiagnosticRunnerService
         DockerLogService dockerLogService,
         CounterPresetCatalog counterPresetCatalog,
         DiagnosticRunnerCatalog runnerCatalog,
+        DiagnosticRunnerImageService runnerImages,
         DiagnosticRunnerContainerPolicy runnerPolicy,
         CounterSampleParser counterSampleParser,
         DiagnosticSessionRegistry sessionRegistry,
@@ -46,6 +48,7 @@ public sealed class DiagnosticRunnerService
         _dockerLogService = dockerLogService;
         _counterPresetCatalog = counterPresetCatalog;
         _runnerCatalog = runnerCatalog;
+        _runnerImages = runnerImages;
         _runnerPolicy = runnerPolicy;
         _counterSampleParser = counterSampleParser;
         _sessionRegistry = sessionRegistry;
@@ -59,6 +62,7 @@ public sealed class DiagnosticRunnerService
         var container = await _containerCatalog.GetAllowedDotnetAsync(containerId, cancellationToken);
         var identity = _containerPolicy.GetIdentity(container);
         var runner = _runnerCatalog.Select(container);
+        await _runnerImages.EnsureAvailableAsync(runner, cancellationToken);
         var result = await RunOneShotAsync(
             container,
             runner,
@@ -97,6 +101,7 @@ public sealed class DiagnosticRunnerService
         var container = await _containerCatalog.GetAllowedDotnetAsync(containerId, cancellationToken);
         var identity = _containerPolicy.GetIdentity(container);
         var runner = _runnerCatalog.Select(container);
+        await _runnerImages.EnsureAvailableAsync(runner, cancellationToken);
         using var reservation = _sessionRegistry.ReserveTarget(identity.Id);
         var sessionId = CreateId("ctr");
         var runnerName = $"tracebag-runner-{_options.Stage}-{sessionId}";

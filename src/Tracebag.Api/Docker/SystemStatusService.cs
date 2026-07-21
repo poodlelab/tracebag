@@ -81,6 +81,7 @@ public sealed class SystemStatusService
             _startedAt,
             DateTimeOffset.UtcNow - _startedAt,
             docker,
+            CreateDiscoveryScopeStatus(_options),
             database,
             artifacts,
             runner,
@@ -89,6 +90,24 @@ public sealed class SystemStatusService
             logIngestion,
             activeTargets.Count,
             targets.Count);
+    }
+
+    internal static SystemDependencyDto CreateDiscoveryScopeStatus(TracebagOptions options)
+    {
+        var details = new Dictionary<string, object?>
+        {
+            ["allowedLabel"] = $"{options.AllowedLabelKey}={options.AllowedLabelValue}",
+            ["environmentLabel"] = options.EnvironmentLabelKey is null
+                ? null
+                : $"{options.EnvironmentLabelKey}={options.EnvironmentLabelValue}"
+        };
+
+        return options.EnvironmentLabelKey is null
+            ? new SystemDependencyDto(
+                "attention",
+                "No environment scope is configured. Every container with the allowed label on this Docker host is visible to this Tracebag instance.",
+                details)
+            : Healthy("Container discovery is restricted by both opt-in and environment labels.", details);
     }
 
     private async Task<SystemDependencyDto> DataRetentionStatusAsync(CancellationToken cancellationToken)
@@ -220,7 +239,10 @@ public sealed class SystemStatusService
         };
         return defaultAvailable
             ? Healthy("The default .NET runner image is available.", details)
-            : Unavailable("The default .NET runner image is unavailable.", details);
+            : new SystemDependencyDto(
+                "on-demand",
+                "The default .NET runner will be downloaded from its configured registry when diagnostics are first used.",
+                details);
     }
 
     private static SystemDependencyDto Healthy(string message, IReadOnlyDictionary<string, object?> details)

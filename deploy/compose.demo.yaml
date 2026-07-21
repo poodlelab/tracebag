@@ -21,6 +21,7 @@ services:
       start_period: 10s
     labels:
       tracebag.enabled: "true"
+      tracebag.environment: "production"
       tracebag.displayName: "Tracebag Demo API"
       tracebag.kind: "dotnet"
       tracebag.dotnet.runtime: "8"

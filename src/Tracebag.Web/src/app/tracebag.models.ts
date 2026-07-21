@@ -80,6 +80,7 @@ export interface SystemStatusDto {
   startedAt: string;
   uptime: string;
   docker: SystemDependencyDto;
+  discoveryScope: SystemDependencyDto;
   database: SystemDependencyDto;
   artifactStorage: SystemDependencyDto;
   runnerImage: SystemDependencyDto;

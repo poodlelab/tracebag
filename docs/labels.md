@@ -1,19 +1,49 @@
 # Tracebag Container Labels
 
-Tracebag discovers only explicitly opted-in containers. New installations use
-the `tracebag.*` namespace exclusively; no legacy aliases are supported.
+Tracebag discovers only explicitly opted-in containers. Tracebag-owned target
+labels use the `tracebag.*` namespace; an additional discovery scope may reuse
+an environment label your workloads already carry.
 
-## Minimal log-only target
+## Choose the level of access
+
+| Configuration | Container list | Live logs | Stored log search | .NET diagnostics |
+| --- | --- | --- | --- | --- |
+| `tracebag.enabled=true` | yes | yes | no | no |
+| plus `tracebag.logs.persist=true` | yes | yes | yes | no |
+| plus the .NET labels and shared `/tmp` volume | yes | yes | yes | yes |
+
+Discovery, log retention, and runtime diagnostics are separate opt-ins.
+Enabling a container does not persist its logs.
+
+## Live logs only
 
 ```yaml
 services:
   api:
     labels:
       tracebag.enabled: "true"
+      tracebag.environment: "production"
       tracebag.displayName: "Orders API"
 ```
 
 This makes the container visible and enables current live-log workflows.
+
+## Persisted and searchable logs
+
+```yaml
+services:
+  api:
+    labels:
+      tracebag.enabled: "true"
+      tracebag.environment: "production"
+      tracebag.displayName: "Orders API"
+      tracebag.logs.persist: "true"
+      tracebag.logs.parser: "auto"
+      tracebag.logs.retentionDays: "7"
+```
+
+Persisted logs may contain credentials or customer data and consume PostgreSQL
+storage, so Tracebag never infers this opt-in from `tracebag.enabled`.
 
 ## .NET diagnostics target
 
@@ -26,6 +56,7 @@ services:
       - api_dotnet_tmp:/tmp
     labels:
       tracebag.enabled: "true"
+      tracebag.environment: "production"
       tracebag.displayName: "Orders API"
       tracebag.kind: "dotnet"
       tracebag.dotnet.runtime: "8"
@@ -44,6 +75,27 @@ the .NET diagnostics IPC socket is available. Tracebag runners have networking
 disabled, use a read-only root filesystem and strict resource ceilings, and do
 not receive the Docker socket. Only durable capture jobs mount the artifact
 volume; process discovery and counter runners do not.
+
+`tracebag.dotnet.tmpVolume` is the actual Docker volume name. It is not
+necessarily the key written under Compose `volumes:` because Compose prefixes
+unnamed volumes with the project name. Declare an explicit `name`, as in the
+example, and copy that exact value into the label.
+
+## Scope each installation
+
+Set a second discovery expression in Tracebag's `.env` and put the matching
+label on every target:
+
+```dotenv
+TRACEBAG_ALLOWED_LABEL=tracebag.enabled=true
+TRACEBAG_ENVIRONMENT_LABEL=tracebag.environment=production
+```
+
+This matters whenever one Docker host runs multiple Compose projects, demo
+stacks, or Tracebag installations. Without it, every container carrying the
+allowed label is visible. Existing labels can be used instead, for example
+`TRACEBAG_ENVIRONMENT_LABEL=helfli.stage=test`; the key need not be in the
+`tracebag.*` namespace.
 
 ## Supported labels
 

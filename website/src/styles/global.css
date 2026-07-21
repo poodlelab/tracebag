@@ -195,7 +195,13 @@ h3 { letter-spacing: -0.02em; }
 .prose h2 { font-size: 1.8rem; }
 .prose h3 { font-size: 1.15rem; }
 .prose a { color: var(--accent); }
+.prose a.button { color: #03100c; }
+.prose a.button-secondary { color: var(--text); }
 .prose li + li { margin-top: 0.45rem; }
+.prose table { border-collapse: collapse; display: block; font-size: 0.84rem; margin-block: 1.5rem; max-width: 100%; overflow-x: auto; white-space: nowrap; }
+.prose th, .prose td { border-bottom: 1px solid var(--border); padding: 0.75rem 1rem; text-align: left; }
+.prose th { color: var(--text); font-size: 0.75rem; }
+.prose td:first-child, .prose th:first-child { padding-left: 0; }
 
 .code-block {
   background: #040908;

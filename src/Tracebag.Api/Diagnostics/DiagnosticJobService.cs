@@ -22,6 +22,7 @@ public sealed class DiagnosticJobService : IDisposable
     private readonly ContainerCatalog _containers;
     private readonly ContainerPolicy _containerPolicy;
     private readonly DiagnosticRunnerCatalog _runners;
+    private readonly DiagnosticRunnerImageService _runnerImages;
     private readonly DiagnosticRunnerContainerPolicy _runnerPolicy;
     private readonly DockerLogService _dockerLogs;
     private readonly ArtifactStore _artifacts;
@@ -36,6 +37,7 @@ public sealed class DiagnosticJobService : IDisposable
         ContainerCatalog containers,
         ContainerPolicy containerPolicy,
         DiagnosticRunnerCatalog runners,
+        DiagnosticRunnerImageService runnerImages,
         DiagnosticRunnerContainerPolicy runnerPolicy,
         DockerLogService dockerLogs,
         ArtifactStore artifacts,
@@ -49,6 +51,7 @@ public sealed class DiagnosticJobService : IDisposable
         _containers = containers;
         _containerPolicy = containerPolicy;
         _runners = runners;
+        _runnerImages = runnerImages;
         _runnerPolicy = runnerPolicy;
         _dockerLogs = dockerLogs;
         _artifacts = artifacts;
@@ -219,6 +222,7 @@ public sealed class DiagnosticJobService : IDisposable
         try
         {
             await _store.TransitionAsync(active.Id, "validating", 10, "Target and fixed capture profile validated.", cancellationToken: token);
+            await _runnerImages.EnsureAvailableAsync(active.Runner, token);
             await _store.TransitionAsync(active.Id, "starting", 20, "Creating the isolated diagnostic runner.", cancellationToken: token);
             var runnerName = $"tracebag-job-runner-{_options.Stage}-{active.Id}";
             var parameters = _runnerPolicy.Build(new DiagnosticRunnerContainerRequest(

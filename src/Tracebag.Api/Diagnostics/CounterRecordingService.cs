@@ -20,6 +20,7 @@ public sealed class CounterRecordingService : IDisposable
     private readonly DockerLogService _dockerLogService;
     private readonly CounterPresetCatalog _counterPresetCatalog;
     private readonly DiagnosticRunnerCatalog _runnerCatalog;
+    private readonly DiagnosticRunnerImageService _runnerImages;
     private readonly DiagnosticRunnerContainerPolicy _runnerPolicy;
     private readonly CounterRecordingStore _store;
     private readonly CounterSampleParser _parser;
@@ -34,6 +35,7 @@ public sealed class CounterRecordingService : IDisposable
         DockerLogService dockerLogService,
         CounterPresetCatalog counterPresetCatalog,
         DiagnosticRunnerCatalog runnerCatalog,
+        DiagnosticRunnerImageService runnerImages,
         DiagnosticRunnerContainerPolicy runnerPolicy,
         CounterRecordingStore store,
         CounterSampleParser parser,
@@ -47,6 +49,7 @@ public sealed class CounterRecordingService : IDisposable
         _dockerLogService = dockerLogService;
         _counterPresetCatalog = counterPresetCatalog;
         _runnerCatalog = runnerCatalog;
+        _runnerImages = runnerImages;
         _runnerPolicy = runnerPolicy;
         _store = store;
         _parser = parser;
@@ -110,6 +113,7 @@ public sealed class CounterRecordingService : IDisposable
         var targetIdentity = _containerPolicy.GetIdentity(targetContainer);
         var targetContainerName = _containerPolicy.GetContainerName(targetContainer);
         var runner = _runnerCatalog.Select(targetContainer);
+        await _runnerImages.EnsureAvailableAsync(runner, cancellationToken);
 
         await _startLock.WaitAsync(cancellationToken);
         try
