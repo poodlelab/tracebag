@@ -25,7 +25,7 @@ commands, and it ignores every container that has not explicitly opted in.
   EventPipe trace, GC dump, or explicitly gated process dump and keep the result
   with the incident that caused it.
 
-Tracebag 0.1.0 supports Docker Engine on Linux `amd64` and `arm64`. Runtime
+Tracebag 0.1.1 supports Docker Engine on Linux `amd64` and `arm64`. Runtime
 diagnostics use dedicated runners for .NET 8, 9, and 10. The web application,
 API, and PostgreSQL database are installed together with Docker Compose.
 
@@ -40,7 +40,8 @@ sequence:
 
 1. Download the Compose and environment files for an explicit version.
 2. Generate the two required secrets.
-3. Pull the signed application and diagnostic-runner images from GHCR.
+3. Pull the signed application from GHCR. The matching diagnostic runner is
+   downloaded on first use.
 4. Start Tracebag on `127.0.0.1:9090` and verify its readiness endpoint.
 
 The guide also covers upgrades, persistent volumes, HTTPS, backup, and restore.
@@ -54,12 +55,16 @@ services:
   api:
     labels:
       tracebag.enabled: "true"
+      tracebag.environment: "production"
+      tracebag.logs.persist: "true"
 ```
 
-That label is enough for Docker state and logs. .NET process inspection and
-profiling also require the runtime diagnostic socket to be shared through a
-named `/tmp` volume. See the [container label reference](docs/labels.md) for the
-complete, copyable configuration.
+The first label allows discovery and live logs; it does not retain logs for
+search. The persistence label is a separate data-retention opt-in. The
+environment label keeps unrelated projects on the same Docker host out of this
+installation. .NET process inspection and profiling also require the runtime
+diagnostic socket to be shared through a named `/tmp` volume. See the
+[container label reference](docs/labels.md) for the complete configuration.
 
 ## Try it on the demo API
 
@@ -94,6 +99,7 @@ trusted HTTPS reverse proxy for remote access. Read the
 - [Install and operate Tracebag](docs/quickstart.md)
 - [Run the demo investigation](docs/demo-tour.md)
 - [Configure container labels](docs/labels.md)
+- [Call the authenticated API](docs/api.md)
 - [Understand diagnostics and artifacts](docs/diagnostic-jobs.md)
 - [Upgrade, back up, and restore](docs/operations.md)
 - [Review the architecture and trust boundaries](docs/architecture.md)

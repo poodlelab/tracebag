@@ -14,7 +14,7 @@ const base = import.meta.env.BASE_URL;
       <h2>1. Download the release configuration</h2>
       <p>Choose a released version instead of relying on a moving image tag.</p>
       <pre class="code-block"><code>mkdir tracebag &amp;&amp; cd tracebag
-export TRACEBAG_VERSION=0.1.0
+export TRACEBAG_VERSION=0.1.1
 curl -fsSLo compose.yaml \
   https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/compose.release.yaml
 curl -fsSLo .env.example \
@@ -22,7 +22,7 @@ curl -fsSLo .env.example \
 cp .env.example .env</code></pre>
 
       <h2>2. Generate the required secrets</h2>
-      <p>Set a random PostgreSQL password, then use the published Tracebag image to create an ASP.NET Core password hash. The administrator password itself is not stored in <code>.env</code>.</p>
+      <p>Set a random PostgreSQL password, then use the published Tracebag image to create an ASP.NET Core password hash. This is a Docker-only command; the administrator password itself is not stored in <code>.env</code>.</p>
       <pre class="code-block"><code>POSTGRES_PASSWORD=$(openssl rand -hex 32)
 sed -i.bak "s|^TRACEBAG_POSTGRES_PASSWORD=.*|TRACEBAG_POSTGRES_PASSWORD=${'{'}POSTGRES_PASSWORD{'}'}|" .env
 
@@ -35,38 +35,54 @@ rm -f .env.bak
 chmod 600 .env</code></pre>
 
       <h2>3. Pull and launch</h2>
-      <pre class="code-block"><code>docker compose --env-file .env -f compose.yaml --profile runners pull
+      <pre class="code-block"><code>docker compose --env-file .env -f compose.yaml pull tracebag-postgres tracebag
 docker compose --env-file .env -f compose.yaml \
   up -d --wait tracebag-postgres tracebag</code></pre>
       <p>Open <a href="http://localhost:9090">http://localhost:9090</a> and sign in as <code>admin</code>.</p>
+      <p>The initial install does not download every diagnostic image. Tracebag pulls only the runner matching an application's declared .NET runtime when diagnostics are first used.</p>
 
       <div class="callout"><strong>Docker socket warning:</strong> Tracebag needs Docker API access to inspect opted-in workloads and start fixed diagnostic runners. Keep it on a host you control, bind it to localhost, and read the <a href={`${base}security/`}>security model</a>.</div>
 
       <h2>4. Opt in an application</h2>
-      <p>Tracebag ignores containers without the explicit enablement label.</p>
-      <pre class="code-block"><code>services:
-  api:
-    labels:
-      tracebag.enabled: "true"
-      tracebag.logs.persist: "true"</code></pre>
+      <p>The release configuration looks only for <code>tracebag.environment=production</code>. Use another value if needed, but keep the filter in <code>.env</code> and every target label identical.</p>
+      <pre class="code-block"><code>TRACEBAG_ALLOWED_LABEL=tracebag.enabled=true
+TRACEBAG_ENVIRONMENT_LABEL=tracebag.environment=production</code></pre>
 
-      <h3>Enable .NET diagnostics</h3>
-      <p>Share a named <code>/tmp</code> volume so Tracebag's temporary runner can reach the runtime diagnostic socket. The label value must be the actual Docker volume name.</p>
+      <h3>A .NET API with searchable logs</h3>
+      <p>This is the recommended baseline. It makes the API visible, stores its logs for search, and enables runtime diagnostics.</p>
       <pre class="code-block"><code>services:
   api:
     environment:
       DOTNET_EnableDiagnostics: "1"
     volumes:
-      - tracebag-dotnet-tmp:/tmp
+      - api-dotnet-tmp:/tmp
     labels:
       tracebag.enabled: "true"
-      tracebag.kind: dotnet
+      tracebag.environment: "production"
+      tracebag.displayName: "My API"
+      tracebag.logs.persist: "true"
+      tracebag.logs.parser: "auto"
+      tracebag.logs.retentionDays: "7"
+      tracebag.kind: "dotnet"
       tracebag.dotnet.runtime: "8"
-      tracebag.dotnet.tmpVolume: my-api-tracebag-dotnet-tmp
+      tracebag.dotnet.tmpVolume: "my_api_dotnet_tmp"
 
 volumes:
-  tracebag-dotnet-tmp:
-    name: my-api-tracebag-dotnet-tmp</code></pre>
+  api-dotnet-tmp:
+    name: my_api_dotnet_tmp</code></pre>
+
+      <table>
+        <thead><tr><th>Configuration</th><th>Visible</th><th>Live logs</th><th>Log search</th><th>.NET diagnostics</th></tr></thead>
+        <tbody>
+          <tr><td><code>tracebag.enabled</code></td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
+          <tr><td>Plus <code>tracebag.logs.persist</code></td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+          <tr><td>Plus .NET labels and shared <code>/tmp</code></td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout"><strong>Two separate opt-ins:</strong> <code>tracebag.enabled=true</code> allows discovery and live logs; it does not retain logs. Add <code>tracebag.logs.persist=true</code> when you explicitly want searchable history.</div>
+
+      <p><code>tracebag.dotnet.tmpVolume</code> must contain the actual Docker volume name, not merely the Compose key. Giving the volume an explicit <code>name</code>, as above, prevents Compose from silently prefixing it.</p>
 
       <h2>5. Verify and operate</h2>
       <pre class="code-block"><code>curl --fail http://localhost:9090/health/ready

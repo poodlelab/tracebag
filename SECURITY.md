@@ -71,6 +71,12 @@ socket nor arbitrary mounts; only durable jobs receive the artifact volume.
 These controls limit a diagnostic tool failure but do not reduce the privilege
 of Tracebag's own Docker socket.
 
+Released installations pull the configured, version-pinned runner for a
+target's declared .NET runtime on first use. Environments that block registry
+access during incidents should pre-pull the required runner image. Custom
+private-registry images must be pre-pulled because Tracebag does not accept or
+store registry credentials.
+
 ## Diagnostic data
 
 Logs, traces, GC dumps, full process dumps, stacks, and exported bundles can

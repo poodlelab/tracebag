@@ -2,7 +2,7 @@ name: tracebag
 
 services:
   tracebag:
-    image: ${TRACEBAG_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag:${TRACEBAG_VERSION:-0.1.0}}
+    image: ${TRACEBAG_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag:${TRACEBAG_VERSION:-0.1.1}}
     restart: unless-stopped
     depends_on:
       tracebag-postgres:
@@ -27,13 +27,13 @@ services:
       TRACEBAG_DURABLE_RETENTION_SCAN_SECONDS: ${TRACEBAG_DURABLE_RETENTION_SCAN_SECONDS:-300}
       TRACEBAG_INCIDENT_MAX_COUNT: ${TRACEBAG_INCIDENT_MAX_COUNT:-200}
       TRACEBAG_ALLOWED_LABEL: ${TRACEBAG_ALLOWED_LABEL:-tracebag.enabled=true}
-      TRACEBAG_ENVIRONMENT_LABEL: ${TRACEBAG_ENVIRONMENT_LABEL:-}
+      TRACEBAG_ENVIRONMENT_LABEL: ${TRACEBAG_ENVIRONMENT_LABEL-tracebag.environment=production}
       TRACEBAG_DATA_DIR: /data
       TRACEBAG_ARTIFACT_DIR: /artifacts
       TRACEBAG_ARTIFACT_VOLUME: ${TRACEBAG_ARTIFACT_VOLUME:-tracebag_artifacts}
-      TRACEBAG_RUNNER_IMAGE_DOTNET_8: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.0}}
-      TRACEBAG_RUNNER_IMAGE_DOTNET_9: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.0}}
-      TRACEBAG_RUNNER_IMAGE_DOTNET_10: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.0}}
+      TRACEBAG_RUNNER_IMAGE_DOTNET_8: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.1}}
+      TRACEBAG_RUNNER_IMAGE_DOTNET_9: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.1}}
+      TRACEBAG_RUNNER_IMAGE_DOTNET_10: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.1}}
       TRACEBAG_RUNNER_DEFAULT_RUNTIME_MAJOR: ${TRACEBAG_RUNNER_DEFAULT_RUNTIME_MAJOR:-8}
       TRACEBAG_RUNNER_MEMORY_LIMIT_BYTES: ${TRACEBAG_RUNNER_MEMORY_LIMIT_BYTES:-1073741824}
       TRACEBAG_RUNNER_CPU_LIMIT_MILLICORES: ${TRACEBAG_RUNNER_CPU_LIMIT_MILLICORES:-1000}
@@ -104,21 +104,21 @@ services:
       - no-new-privileges:true
 
   tracebag-runner-dotnet-8:
-    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.0}}
+    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.1}}
     profiles: ["runners"]
     entrypoint: ["/bin/true"]
     labels:
       tracebag.internal: "true"
 
   tracebag-runner-dotnet-9:
-    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.0}}
+    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.1}}
     profiles: ["runners"]
     entrypoint: ["/bin/true"]
     labels:
       tracebag.internal: "true"
 
   tracebag-runner-dotnet-10:
-    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.0}}
+    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.1}}
     profiles: ["runners"]
     entrypoint: ["/bin/true"]
     labels:

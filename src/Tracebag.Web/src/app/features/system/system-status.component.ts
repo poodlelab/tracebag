@@ -28,7 +28,7 @@ import { IconComponent } from '../../shared/icon.component';
         @for (entry of dependencies(current); track entry.name) {
           <article class="content-panel">
             <div class="selected-header">
-              <span class="status-dot" [class.ok]="entry.value.status === 'healthy'" [class.danger]="entry.value.status === 'unavailable'"></span>
+              <span class="status-dot" [class.ok]="entry.value.status === 'healthy'" [class.warn]="entry.value.status === 'attention' || entry.value.status === 'on-demand'" [class.danger]="entry.value.status === 'unavailable'"></span>
               <div><strong>{{ entry.name }}</strong><small>{{ entry.value.status }}</small></div>
             </div>
             <p>{{ entry.value.message }}</p>
@@ -99,6 +99,7 @@ export class SystemStatusComponent implements OnInit, OnDestroy {
   dependencies(status: SystemStatusDto): { name: string; value: SystemDependencyDto }[] {
     return [
       { name: 'Docker Engine', value: status.docker },
+      { name: 'Discovery scope', value: status.discoveryScope },
       { name: 'PostgreSQL', value: status.database },
       { name: 'Artifact storage', value: status.artifactStorage },
       { name: 'Diagnostic runner', value: status.runnerImage },

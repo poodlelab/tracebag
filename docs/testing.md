@@ -55,7 +55,7 @@ on the exact tag before publishing. After all five digests are scanned, signed,
 and verified, it runs:
 
 ```bash
-./scripts/verify-published-runtime.sh 0.1.0 ghcr.io/poodlelab
+./scripts/verify-published-runtime.sh 0.1.1 ghcr.io/poodlelab
 ```
 
 This path never builds source. It pulls all five exact `X.Y.Z` images, launches

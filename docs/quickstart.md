@@ -19,7 +19,7 @@ Download the Compose and environment templates for an explicit version:
 
 ```bash
 mkdir tracebag && cd tracebag
-export TRACEBAG_VERSION=0.1.0
+export TRACEBAG_VERSION=0.1.1
 curl -fsSLo compose.yaml \
   "https://raw.githubusercontent.com/poodlelab/tracebag/v${TRACEBAG_VERSION}/deploy/compose.release.yaml"
 curl -fsSLo .env.example \
@@ -28,7 +28,8 @@ cp .env.example .env
 ```
 
 Fill the PostgreSQL secret and generate the administrator hash using the same
-released image that will be installed:
+released image that will be installed. This is a Docker-only command; it does
+not require the source tree or a local .NET SDK:
 
 ```bash
 postgres_password="$(openssl rand -hex 32)"
@@ -48,14 +49,17 @@ rm -f .env.bak
 chmod 600 .env
 ```
 
-Pull the application and all three runtime runner images, then start only the
-long-running services:
+Pull and start the two long-running services:
 
 ```bash
-docker compose --env-file .env -f compose.yaml --profile runners pull
+docker compose --env-file .env -f compose.yaml pull tracebag-postgres tracebag
 docker compose --env-file .env -f compose.yaml \
   up --detach --wait tracebag-postgres tracebag
 ```
+
+Diagnostic runners are not part of the initial download. Tracebag pulls only
+the runner matching a target's declared .NET runtime when diagnostics are first
+used. The first diagnostic therefore takes longer than subsequent captures.
 
 Open <http://localhost:9090> and sign in as `admin`. The default Compose mapping
 is `127.0.0.1:9090`; it does not listen on every host interface.
@@ -63,20 +67,18 @@ is `127.0.0.1:9090`; it does not listen on every host interface.
 Keep `TRACEBAG_VERSION` pinned. Review [the operations guide](operations.md)
 before upgrading or changing volume names.
 
-## Make an application detectable
+## Connect an application
 
-All containers are invisible by default. Add this label to any container whose
-logs Tracebag may read:
+The release template scopes discovery to
+`tracebag.environment=production`. Use another value if appropriate, but keep
+the expression in `.env` and the label on every target identical:
 
-```yaml
-services:
-  api:
-    labels:
-      tracebag.enabled: "true"
+```dotenv
+TRACEBAG_ALLOWED_LABEL=tracebag.enabled=true
+TRACEBAG_ENVIRONMENT_LABEL=tracebag.environment=production
 ```
 
-For .NET diagnostics, opt in explicitly and share a named `/tmp` volume so the
-temporary runner can reach the runtime diagnostic socket:
+Use this complete baseline for a .NET API with searchable logs:
 
 ```yaml
 services:
@@ -84,19 +86,39 @@ services:
     environment:
       DOTNET_EnableDiagnostics: "1"
     volumes:
-      - tracebag-dotnet-tmp:/tmp
+      - api-dotnet-tmp:/tmp
     labels:
       tracebag.enabled: "true"
-      tracebag.kind: dotnet
-      tracebag.dotnet.tmpVolume: my-api-tracebag-dotnet-tmp
+      tracebag.environment: "production"
+      tracebag.displayName: "My API"
+      tracebag.logs.persist: "true"
+      tracebag.logs.parser: "auto"
+      tracebag.logs.retentionDays: "7"
+      tracebag.kind: "dotnet"
+      tracebag.dotnet.runtime: "8"
+      tracebag.dotnet.tmpVolume: "my_api_dotnet_tmp"
 
 volumes:
-  tracebag-dotnet-tmp:
-    name: my-api-tracebag-dotnet-tmp
+  api-dotnet-tmp:
+    name: my_api_dotnet_tmp
 ```
 
-The label must contain the actual Docker volume name, not merely its Compose
-key. See [the complete label reference](labels.md).
+The labels have distinct effects:
+
+| Configuration | Container list | Live logs | Stored log search | .NET diagnostics |
+| --- | --- | --- | --- | --- |
+| `tracebag.enabled=true` | yes | yes | no | no |
+| plus `tracebag.logs.persist=true` | yes | yes | yes | no |
+| plus the .NET labels and shared `/tmp` volume | yes | yes | yes | yes |
+
+`tracebag.enabled=true` does **not** store logs. Persistence is a separate,
+explicit opt-in because retained logs can contain sensitive data and consume
+database storage.
+
+The value of `tracebag.dotnet.tmpVolume` must be the actual Docker volume name,
+not merely the Compose key. Compose commonly prefixes unnamed volumes with its
+project name, so giving the volume an explicit `name` as above avoids guessing.
+See [the complete label reference](labels.md).
 
 ## Operate the released stack
 
@@ -151,6 +173,13 @@ proxy. Follow [the Caddy and Nginx guide](reverse-proxy.md). A same-host proxy
 using loopback needs no extra trust setting. If the proxy connects from another
 address, set `TRACEBAG_TRUSTED_PROXIES` to only that literal IP or controlled
 CIDR network. Do not expose port 9090 directly to a network.
+
+## Calling the API directly
+
+The login response includes a CSRF token. API clients must retain the login
+cookie and send that token as `X-CSRF-TOKEN` on every `POST`, `PUT`, `PATCH`, or
+`DELETE` request other than login. See the [API client guide](api.md) for a
+complete `curl` example.
 
 ## Build from source
 

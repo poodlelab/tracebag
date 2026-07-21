@@ -200,6 +200,7 @@ builder.Services.AddSingleton(sp => tracebagOptions.DatabaseEnabled
         tracebagOptions));
 builder.Services.AddSingleton<CounterPresetCatalog>();
 builder.Services.AddSingleton<DiagnosticRunnerCatalog>();
+builder.Services.AddSingleton<DiagnosticRunnerImageService>();
 builder.Services.AddSingleton<DiagnosticRunnerContainerPolicy>();
 builder.Services.AddSingleton<DiagnosticJobProfileCatalog>();
 builder.Services.AddSingleton<DiagnosticSessionRegistry>();

@@ -13,6 +13,7 @@ required_files=(
   "SECURITY.md"
   "SUPPORT.md"
   "docs/architecture.md"
+  "docs/api.md"
   "docs/configuration.md"
   "docs/quickstart.md"
   "docs/operations.md"

@@ -60,6 +60,7 @@ public sealed record SystemStatusDto(
     DateTimeOffset StartedAt,
     TimeSpan Uptime,
     SystemDependencyDto Docker,
+    SystemDependencyDto DiscoveryScope,
     SystemDependencyDto Database,
     SystemDependencyDto ArtifactStorage,
     SystemDependencyDto RunnerImage,
