@@ -16,14 +16,16 @@ if (outputIndex >= 0 && !outputPath) {
 
 const forbidden = /(?:^|\b)(?:AGPL|SSPL|BUSL|Elastic-2\.0|Commons-Clause|GPL-[23]\.0-(?:only|or-later))(?:\b|$)/i;
 const components = [];
+const xmlEntities = new Map([
+  ['&amp;', '&'],
+  ['&lt;', '<'],
+  ['&gt;', '>'],
+  ['&quot;', '"'],
+  ['&apos;', "'"]
+]);
 
 function decodeXml(value) {
-  return value
-    .replaceAll('&amp;', '&')
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&quot;', '"')
-    .replaceAll('&apos;', "'");
+  return value.replace(/&(?:amp|lt|gt|quot|apos);/g, (entity) => xmlEntities.get(entity));
 }
 
 function classifyLicenseText(value) {
