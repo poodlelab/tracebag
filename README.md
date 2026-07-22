@@ -26,6 +26,8 @@ in.
   EventPipe trace, GC dump, or explicitly gated process dump and keep the result
   with the incident that caused it.
 
+![Live .NET runtime counters while the demo API is under bounded CPU and allocation pressure](website/public/screenshots/demo-runtime-counters.jpg)
+
 Tracebag 0.1.2 supports Docker Engine on Linux `amd64` and `arm64`. Runtime
 diagnostics use dedicated runners for .NET 8, 9, and 10. The web application,
 API, and PostgreSQL database are installed together with Docker Compose.
