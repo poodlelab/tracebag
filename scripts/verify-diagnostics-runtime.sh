@@ -46,7 +46,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"${compose[@]}" --profile build build tracebag tracebag-runner-dotnet-8 tracebag-demo-api
+"${compose[@]}" --profile build build tracebag tracebag-runner-dotnet-10 tracebag-demo-api
 "${compose[@]}" up --detach --wait tracebag-postgres tracebag tracebag-demo-api
 tracebag_binding="$("${compose[@]}" port tracebag 8080)"
 demo_binding="$("${compose[@]}" port tracebag-demo-api 8080)"

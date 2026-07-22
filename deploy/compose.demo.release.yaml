@@ -1,6 +1,6 @@
 services:
   tracebag-demo-api:
-    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.2}}
+    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.3}}
     restart: "no"
     init: true
     environment:
@@ -21,7 +21,7 @@ services:
       tracebag.environment: "production"
       tracebag.displayName: "Tracebag Demo API"
       tracebag.kind: "dotnet"
-      tracebag.dotnet.runtime: "8"
+      tracebag.dotnet.runtime: "10"
       tracebag.logs.persist: "true"
       tracebag.logs.parser: "json"
       tracebag.logs.retentionDays: "7"
@@ -35,7 +35,7 @@ services:
       - no-new-privileges:true
 
   tracebag-demo-traffic:
-    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.2}}
+    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.3}}
     profiles: ["traffic"]
     restart: "no"
     init: true

@@ -7,7 +7,7 @@ RUN npm ci
 COPY src/Tracebag.Web ./
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:89ce6291bde9acdf59594e79fb8277c6d84c46e4b1f5bf126a4f18766e4bd597 AS backend-build
+FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:ed034a8bf0b24ded0cbbac07e17825d8e9ebfe21e308191d0f7421eaf5ad4664 AS backend-build
 WORKDIR /src
 
 COPY .editorconfig Directory.Build.props Directory.Packages.props ./
@@ -17,7 +17,7 @@ RUN dotnet restore src/Tracebag.Api/Tracebag.Api.csproj
 COPY src/Tracebag.Api src/Tracebag.Api
 RUN dotnet publish src/Tracebag.Api/Tracebag.Api.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine@sha256:b02ab6637e02dfe07d4205d557cbce7e2ab0e4a1d7d1285868b4f31eed20bd10 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine@sha256:27b6b84beeede74fd16886177d360799c8e4299ceadfbd64eef57bafead7878a AS runtime
 WORKDIR /app
 
 COPY --from=backend-build /app/publish ./

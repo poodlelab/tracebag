@@ -13,7 +13,7 @@ public static class ForwardedHeadersPolicy
             ForwardLimit = 1,
             RequireHeaderSymmetry = true
         };
-        options.KnownNetworks.Clear();
+        options.KnownIPNetworks.Clear();
         options.KnownProxies.Clear();
         options.KnownProxies.Add(IPAddress.Loopback);
         options.KnownProxies.Add(IPAddress.IPv6Loopback);
@@ -50,7 +50,7 @@ public static class ForwardedHeadersPolicy
             throw Invalid(entry);
         }
 
-        options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(address, prefixLength));
+        options.KnownIPNetworks.Add(new System.Net.IPNetwork(address, prefixLength));
     }
 
     private static InvalidOperationException Invalid(string entry)

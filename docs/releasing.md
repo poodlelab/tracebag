@@ -68,7 +68,7 @@ cosign verify \
   --certificate-identity-regexp \
     'https://github.com/poodlelab/tracebag/.github/workflows/release.yml@refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  ghcr.io/poodlelab/tracebag:0.1.2
+  ghcr.io/poodlelab/tracebag:0.1.3
 ```
 
 Inspect the attached SBOM and provenance with an OCI-aware client before

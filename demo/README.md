@@ -1,6 +1,6 @@
 # Tracebag Demo API
 
-The demo API is a deliberately bounded .NET 8 target for learning and testing
+The demo API is a deliberately bounded .NET 10 target for learning and testing
 Tracebag. It produces structured logs, recognizable runtime-counter changes,
 and useful trace/dump inputs without modifying a real application.
 

@@ -24,7 +24,7 @@ services:
       tracebag.environment: "production"
       tracebag.displayName: "Tracebag Demo API"
       tracebag.kind: "dotnet"
-      tracebag.dotnet.runtime: "8"
+      tracebag.dotnet.runtime: "10"
       tracebag.logs.persist: "true"
       tracebag.logs.parser: "json"
       tracebag.logs.retentionDays: "7"
