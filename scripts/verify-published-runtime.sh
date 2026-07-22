@@ -81,7 +81,7 @@ trap 'cleanup $?' EXIT
 
 # This is intentionally pull-only. A build in this test would defeat the
 # guarantee that the published GHCR artifacts are what operators can install.
-# The .NET 8 runner is intentionally absent: the first process request must
+# The .NET 10 runner is intentionally absent: the first process request must
 # exercise Tracebag's on-demand runner pull.
 "${compose[@]}" pull tracebag tracebag-demo-api tracebag-postgres
 
@@ -125,7 +125,7 @@ target_docker_id="$(jq -r --arg id "${target_id}" '.[] | select(.id == $id) | .d
 [[ -n "${target_docker_id}" ]]
 
 processes="$(curl --fail --silent --show-error "${tracebag_url}/api/containers/${target_id}/dotnet/processes")"
-docker image inspect "${TRACEBAG_RUNNER_IMAGE_DOTNET_8}" >/dev/null
+docker image inspect "${TRACEBAG_RUNNER_IMAGE_DOTNET_10}" >/dev/null
 process_id="$(jq -r '.[0].pid // empty' <<<"${processes}")"
 [[ -n "${process_id}" ]] || {
   echo "Published runner could not discover the demo .NET process: ${processes}" >&2
@@ -193,4 +193,4 @@ done
 
 cleanup 0
 trap - EXIT
-echo "Published-image smoke passed for ${registry} at ${version}, including the on-demand .NET 8 runner pull."
+echo "Published-image smoke passed for ${registry} at ${version}, including the on-demand .NET 10 runner pull."

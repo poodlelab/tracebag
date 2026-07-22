@@ -79,7 +79,7 @@ Download an explicit release rather than relying on a moving image tag:
 
 ```bash
 mkdir tracebag && cd tracebag
-export TRACEBAG_VERSION=0.1.2
+export TRACEBAG_VERSION=0.1.3
 curl -fsSLo compose.yaml \
   "https://raw.githubusercontent.com/poodlelab/tracebag/v${TRACEBAG_VERSION}/deploy/compose.release.yaml"
 curl -fsSLo compose.resident.yaml \

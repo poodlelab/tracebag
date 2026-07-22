@@ -26,7 +26,7 @@ website_pid=""
 export COMPOSE_PROJECT_NAME="${project}"
 export TRACEBAG_IMAGE="tracebag-browser:${suffix}"
 export TRACEBAG_DEMO_IMAGE="tracebag-demo-browser:${suffix}"
-export TRACEBAG_RUNNER_IMAGE_DOTNET_8="tracebag-runner-8-browser:${suffix}"
+export TRACEBAG_RUNNER_IMAGE_DOTNET_10="tracebag-runner-10-browser:${suffix}"
 export TRACEBAG_POSTGRES_VOLUME="${project}-postgres"
 export TRACEBAG_DATA_VOLUME="${project}-data"
 export TRACEBAG_ARTIFACT_VOLUME="${project}-artifacts"
@@ -59,7 +59,7 @@ trap cleanup EXIT
 
 docker build --quiet --tag "${TRACEBAG_IMAGE}" --file Dockerfile .
 docker build --quiet --tag "${TRACEBAG_DEMO_IMAGE}" --file demo/Dockerfile .
-docker build --quiet --tag "${TRACEBAG_RUNNER_IMAGE_DOTNET_8}" --file runners/dotnet-8/Dockerfile .
+docker build --quiet --tag "${TRACEBAG_RUNNER_IMAGE_DOTNET_10}" --file runners/dotnet-10/Dockerfile .
 admin_password_hash="$(
   printf '%s\n' "${admin_password}" \
     | docker run --rm --interactive --entrypoint dotnet "${TRACEBAG_IMAGE}" \

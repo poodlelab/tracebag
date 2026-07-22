@@ -4,6 +4,21 @@ All notable Tracebag changes are recorded here. The project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), and the format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.3] - 2026-07-22
+
+### Changed
+
+- The Tracebag API, demo API, and their test projects now target .NET 10.
+- EF Core, ASP.NET Core testing, and Npgsql dependencies now use
+  their .NET 10 release lines.
+- Application and demo images now use pinned .NET 10 SDK and ASP.NET Core base
+  images, while runtime-specific diagnostic runners retain their independently
+  validated tool-host baselines.
+
+### Added
+
+- A live runtime-counter screenshot captured against the bounded demo workload.
+
 ## [0.1.2] - 2026-07-22
 
 ### Added
@@ -65,6 +80,7 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Docker Compose distribution, multi-architecture GHCR publishing, SBOM and
   provenance attestations, image signing, and a GitHub Pages product site.
 
+[0.1.3]: https://github.com/poodlelab/tracebag/releases/tag/v0.1.3
 [0.1.2]: https://github.com/poodlelab/tracebag/releases/tag/v0.1.2
 [0.1.1]: https://github.com/poodlelab/tracebag/releases/tag/v0.1.1
 [0.1.0]: https://github.com/poodlelab/tracebag/releases/tag/v0.1.0

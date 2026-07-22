@@ -28,7 +28,7 @@ in.
 
 ![Live .NET runtime counters while the demo API is under bounded CPU and allocation pressure](website/public/screenshots/demo-runtime-counters.jpg)
 
-Tracebag 0.1.2 supports Docker Engine on Linux `amd64` and `arm64`. Runtime
+Tracebag 0.1.3 supports Docker Engine on Linux `amd64` and `arm64`. Runtime
 diagnostics use dedicated runners for .NET 8, 9, and 10. The web application,
 API, and PostgreSQL database are installed together with Docker Compose.
 
@@ -114,7 +114,7 @@ only and non-.NET configurations.
 
 ## Try it on the demo API
 
-The repository includes a bounded .NET 8 workload that can generate CPU
+The repository includes a bounded .NET 10 workload that can generate CPU
 pressure, allocations, lock contention, ThreadPool starvation, slow requests,
 exceptions, and downstream failures without touching a real service.
 

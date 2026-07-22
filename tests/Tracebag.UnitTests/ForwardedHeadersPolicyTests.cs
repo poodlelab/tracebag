@@ -13,7 +13,7 @@ public sealed class ForwardedHeadersPolicyTests
 
         Assert.Contains(System.Net.IPAddress.Loopback, options.KnownProxies);
         Assert.Contains(System.Net.IPAddress.IPv6Loopback, options.KnownProxies);
-        Assert.Empty(options.KnownNetworks);
+        Assert.Empty(options.KnownIPNetworks);
         Assert.Equal(1, options.ForwardLimit);
         Assert.True(options.RequireHeaderSymmetry);
     }
@@ -24,7 +24,7 @@ public sealed class ForwardedHeadersPolicyTests
         var options = ForwardedHeadersPolicy.Create(Options("10.0.0.5,172.20.0.0/16,fd00::/64"));
 
         Assert.Contains(System.Net.IPAddress.Parse("10.0.0.5"), options.KnownProxies);
-        Assert.Equal(2, options.KnownNetworks.Count);
+        Assert.Equal(2, options.KnownIPNetworks.Count);
     }
 
     [Theory]
