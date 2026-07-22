@@ -2,8 +2,8 @@ name: tracebag
 
 services:
   tracebag:
-    image: ${TRACEBAG_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag:${TRACEBAG_VERSION:-0.1.1}}
-    restart: unless-stopped
+    image: ${TRACEBAG_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag:${TRACEBAG_VERSION:-0.1.2}}
+    restart: "no"
     depends_on:
       tracebag-postgres:
         condition: service_healthy
@@ -31,9 +31,9 @@ services:
       TRACEBAG_DATA_DIR: /data
       TRACEBAG_ARTIFACT_DIR: /artifacts
       TRACEBAG_ARTIFACT_VOLUME: ${TRACEBAG_ARTIFACT_VOLUME:-tracebag_artifacts}
-      TRACEBAG_RUNNER_IMAGE_DOTNET_8: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.1}}
-      TRACEBAG_RUNNER_IMAGE_DOTNET_9: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.1}}
-      TRACEBAG_RUNNER_IMAGE_DOTNET_10: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.1}}
+      TRACEBAG_RUNNER_IMAGE_DOTNET_8: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.2}}
+      TRACEBAG_RUNNER_IMAGE_DOTNET_9: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.2}}
+      TRACEBAG_RUNNER_IMAGE_DOTNET_10: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.2}}
       TRACEBAG_RUNNER_DEFAULT_RUNTIME_MAJOR: ${TRACEBAG_RUNNER_DEFAULT_RUNTIME_MAJOR:-8}
       TRACEBAG_RUNNER_MEMORY_LIMIT_BYTES: ${TRACEBAG_RUNNER_MEMORY_LIMIT_BYTES:-1073741824}
       TRACEBAG_RUNNER_CPU_LIMIT_MILLICORES: ${TRACEBAG_RUNNER_CPU_LIMIT_MILLICORES:-1000}
@@ -69,6 +69,8 @@ services:
     ports:
       - "${TRACEBAG_BIND_ADDRESS:-127.0.0.1}:${TRACEBAG_PORT:-9090}:8080"
     volumes:
+      # This read-only mount flag protects the socket filesystem entry; it does
+      # not make Docker API operations read-only. See SECURITY.md.
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - tracebag-artifacts:/artifacts
       - tracebag-data:/data
@@ -85,7 +87,7 @@ services:
 
   tracebag-postgres:
     image: postgres:16-alpine
-    restart: unless-stopped
+    restart: "no"
     environment:
       POSTGRES_DB: tracebag
       POSTGRES_USER: tracebag
@@ -104,21 +106,21 @@ services:
       - no-new-privileges:true
 
   tracebag-runner-dotnet-8:
-    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.1}}
+    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_8:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-8:${TRACEBAG_VERSION:-0.1.2}}
     profiles: ["runners"]
     entrypoint: ["/bin/true"]
     labels:
       tracebag.internal: "true"
 
   tracebag-runner-dotnet-9:
-    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.1}}
+    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_9:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-9:${TRACEBAG_VERSION:-0.1.2}}
     profiles: ["runners"]
     entrypoint: ["/bin/true"]
     labels:
       tracebag.internal: "true"
 
   tracebag-runner-dotnet-10:
-    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.1}}
+    image: ${TRACEBAG_RUNNER_IMAGE_DOTNET_10:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-runner-dotnet-10:${TRACEBAG_VERSION:-0.1.2}}
     profiles: ["runners"]
     entrypoint: ["/bin/true"]
     labels:

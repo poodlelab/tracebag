@@ -32,7 +32,7 @@ const shots = [
   <section class="section shell narrow prose">
     <p class="eyebrow">Published release</p>
     <h2>Launch Tracebag and the demo together</h2>
-    <p>After completing the Docker quickstart, download the matching demo overlay and start the bounded workload:</p>
+    <p>After the one-time host setup, download the matching demo overlay and start it with a Tracebag session:</p>
     <pre class="code-block"><code>curl -fsSLo compose.demo.yaml \
   https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/compose.demo.release.yaml
 
@@ -42,6 +42,7 @@ docker compose --env-file .env \
   -f compose.yaml -f compose.demo.yaml \
   up -d --wait tracebag-postgres tracebag tracebag-demo-api</code></pre>
     <p>Tracebag opens at <a href="http://localhost:9090">localhost:9090</a> and the demo control API at <a href="http://localhost:9091">localhost:9091</a>. Every synthetic workload has duration, resource, and concurrency caps plus a reset endpoint.</p>
+    <p>End the complete demo session with <code>docker compose --env-file .env -f compose.yaml -f compose.demo.yaml down</code>. Named Tracebag volumes remain for another session.</p>
     <p>From a source checkout, <code>./scripts/demo-up.sh --traffic</code> builds the same stack locally and adds normal background traffic.</p>
     <a class="button" href="https://github.com/poodlelab/tracebag/blob/main/docs/demo-tour.md">Follow the ten-minute tour</a>
   </section>

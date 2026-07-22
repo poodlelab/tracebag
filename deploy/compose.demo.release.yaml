@@ -1,7 +1,7 @@
 services:
   tracebag-demo-api:
-    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.1}}
-    restart: unless-stopped
+    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.2}}
+    restart: "no"
     init: true
     environment:
       ASPNETCORE_URLS: http://+:8080
@@ -35,9 +35,9 @@ services:
       - no-new-privileges:true
 
   tracebag-demo-traffic:
-    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.1}}
+    image: ${TRACEBAG_DEMO_IMAGE:-${TRACEBAG_REGISTRY:-ghcr.io/poodlelab}/tracebag-demo-api:${TRACEBAG_VERSION:-0.1.2}}
     profiles: ["traffic"]
-    restart: unless-stopped
+    restart: "no"
     init: true
     command: ["traffic-generator", "http://tracebag-demo-api:8080"]
     environment:

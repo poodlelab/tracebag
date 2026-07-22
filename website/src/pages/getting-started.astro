@@ -3,53 +3,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 const base = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title="Install Tracebag — Tracebag" description="Install Tracebag from GHCR and connect your first Dockerized .NET application.">
+<BaseLayout title="Start a Tracebag session — Tracebag" description="Prepare a Dockerized .NET application once, then start and stop Tracebag for a debugging session.">
   <header class="page-hero shell narrow">
-    <h1>Install Tracebag with Docker</h1>
-    <p class="lead">These commands are complete and ordered. They install a pinned release, create the required secrets, keep the console on localhost, and connect one application explicitly.</p>
+    <h1>Prepare once. Start Tracebag when you need it.</h1>
+    <p class="lead">Tracebag runs on the Docker host for the duration of an investigation. Your application opts in ahead of time; starting a session then takes one Compose command.</p>
   </header>
 
   <article class="section section-muted">
     <div class="shell narrow prose">
-      <h2>1. Download the release configuration</h2>
-      <p>Choose a released version instead of relying on a moving image tag.</p>
-      <pre class="code-block"><code>mkdir tracebag &amp;&amp; cd tracebag
-export TRACEBAG_VERSION=0.1.1
-curl -fsSLo compose.yaml \
-  https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/compose.release.yaml
-curl -fsSLo .env.example \
-  https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/.env.release.example
-cp .env.example .env</code></pre>
+      <div class="callout"><strong>Docker access:</strong> while Tracebag is running, its backend has Docker administrator capabilities. Use it only on a host you control and stop it after the investigation.</div>
 
-      <h2>2. Generate the required secrets</h2>
-      <p>Set a random PostgreSQL password, then use the published Tracebag image to create an ASP.NET Core password hash. This is a Docker-only command; the administrator password itself is not stored in <code>.env</code>.</p>
-      <pre class="code-block"><code>POSTGRES_PASSWORD=$(openssl rand -hex 32)
-sed -i.bak "s|^TRACEBAG_POSTGRES_PASSWORD=.*|TRACEBAG_POSTGRES_PASSWORD=${'{'}POSTGRES_PASSWORD{'}'}|" .env
-
-read -rsp "Tracebag admin password: " ADMIN_PASSWORD; echo
-PASSWORD_HASH=$(printf '%s\n' "${'{'}ADMIN_PASSWORD{'}'}" | \
-  docker run --rm -i ghcr.io/poodlelab/tracebag:${'{'}TRACEBAG_VERSION{'}'} hash-password admin)
-unset ADMIN_PASSWORD
-sed -i.bak "s|^TRACEBAG_ADMIN_PASSWORD_HASH=.*|TRACEBAG_ADMIN_PASSWORD_HASH=${'{'}PASSWORD_HASH{'}'}|" .env
-rm -f .env.bak
-chmod 600 .env</code></pre>
-
-      <h2>3. Pull and launch</h2>
-      <pre class="code-block"><code>docker compose --env-file .env -f compose.yaml pull tracebag-postgres tracebag
-docker compose --env-file .env -f compose.yaml \
-  up -d --wait tracebag-postgres tracebag</code></pre>
-      <p>Open <a href="http://localhost:9090">http://localhost:9090</a> and sign in as <code>admin</code>.</p>
-      <p>The initial install does not download every diagnostic image. Tracebag pulls only the runner matching an application's declared .NET runtime when diagnostics are first used.</p>
-
-      <div class="callout"><strong>Docker socket warning:</strong> Tracebag needs Docker API access to inspect opted-in workloads and start fixed diagnostic runners. Keep it on a host you control, bind it to localhost, and read the <a href={`${base}security/`}>security model</a>.</div>
-
-      <h2>4. Opt in an application</h2>
-      <p>The release configuration looks only for <code>tracebag.environment=production</code>. Use another value if needed, but keep the filter in <code>.env</code> and every target label identical.</p>
-      <pre class="code-block"><code>TRACEBAG_ALLOWED_LABEL=tracebag.enabled=true
-TRACEBAG_ENVIRONMENT_LABEL=tracebag.environment=production</code></pre>
-
-      <h3>A .NET API with searchable logs</h3>
-      <p>This is the recommended baseline. It makes the API visible, stores its logs for search, and enables runtime diagnostics.</p>
+      <h2>1. Prepare the application</h2>
+      <p>Add the labels and shared diagnostics volume before an incident. Docker cannot add them to an existing container, and recreating a failing application during an investigation can change the evidence.</p>
       <pre class="code-block"><code>services:
   api:
     environment:
@@ -71,30 +36,74 @@ volumes:
   api-dotnet-tmp:
     name: my_api_dotnet_tmp</code></pre>
 
+      <p><code>tracebag.enabled=true</code> allows discovery and live logs. Searchable logs require the separate <code>tracebag.logs.persist=true</code> opt-in. The .NET labels and named <code>/tmp</code> volume enable counters and captures.</p>
+      <p>The value of <code>tracebag.dotnet.tmpVolume</code> must be the actual Docker volume name. The explicit <code>name</code> above prevents Compose from adding a project prefix.</p>
+
+      <h2>2. Set up Tracebag on the host</h2>
+      <p>This is a one-time setup. Download a pinned release and keep this directory on the server for later sessions.</p>
+      <pre class="code-block"><code>mkdir tracebag &amp;&amp; cd tracebag
+export TRACEBAG_VERSION=0.1.2
+curl -fsSLo compose.yaml \
+  https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/compose.release.yaml
+curl -fsSLo compose.resident.yaml \
+  https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/compose.resident.yaml
+curl -fsSLo .env.example \
+  https://raw.githubusercontent.com/poodlelab/tracebag/v${'{'}TRACEBAG_VERSION{'}'}/deploy/.env.release.example
+cp .env.example .env</code></pre>
+
+      <p>Generate a database secret and an administrator password hash. The password itself is not stored in <code>.env</code>.</p>
+      <pre class="code-block"><code>postgres_password=$(openssl rand -hex 32)
+sed -i.bak "s|^TRACEBAG_POSTGRES_PASSWORD=.*|TRACEBAG_POSTGRES_PASSWORD=${'{'}postgres_password{'}'}|" .env
+
+read -rsp "Tracebag admin password: " admin_password; echo
+password_hash=$(printf '%s\n' "${'{'}admin_password{'}'}" | \
+  docker run --rm -i ghcr.io/poodlelab/tracebag:${'{'}TRACEBAG_VERSION{'}'} hash-password admin)
+unset admin_password
+sed -i.bak "s|^TRACEBAG_ADMIN_PASSWORD_HASH=.*|TRACEBAG_ADMIN_PASSWORD_HASH=${'{'}password_hash{'}'}|" .env
+rm -f .env.bak
+chmod 600 .env</code></pre>
+
+      <p>Set <code>TRACEBAG_ENVIRONMENT_LABEL</code> in <code>.env</code> to the exact environment label on the prepared targets. This prevents another Compose project on the same host from appearing accidentally.</p>
+
+      <h2>3. Give the session an HTTPS address</h2>
+      <p>On a remote server, keep Tracebag on <code>127.0.0.1:9090</code> and route an existing HTTPS reverse proxy to it. Set the external address in <code>.env</code>:</p>
+      <pre class="code-block"><code>TRACEBAG_BIND_ADDRESS=127.0.0.1
+TRACEBAG_PORT=9090
+TRACEBAG_PUBLIC_URL=https://tracebag.example.com</code></pre>
+      <p>The proxy route can stay configured. It has no backend while Tracebag is stopped and becomes available when the session starts. Copy-ready Caddy, Nginx, and Traefik configurations are in the <a href="https://github.com/poodlelab/tracebag/blob/main/docs/reverse-proxy.md">reverse-proxy guide</a>.</p>
+      <p>For Tracebag running on your own computer, keep the defaults and use <a href="http://localhost:9090">http://localhost:9090</a>. An SSH port forward remains an optional fallback, not a requirement.</p>
+
+      <h2>4. Start the session</h2>
+      <pre class="code-block"><code>docker compose --env-file .env -f compose.yaml pull tracebag-postgres tracebag
+docker compose --env-file .env -f compose.yaml up -d --wait</code></pre>
+      <p>Open <code>TRACEBAG_PUBLIC_URL</code> and sign in as <code>admin</code>. The first diagnostic for a declared .NET runtime takes longer because Tracebag downloads that runner image on demand.</p>
+
+      <h2>5. Understand the available history</h2>
       <table>
-        <thead><tr><th>Configuration</th><th>Visible</th><th>Live logs</th><th>Log search</th><th>.NET diagnostics</th></tr></thead>
+        <thead><tr><th>Evidence</th><th>When a session starts</th></tr></thead>
         <tbody>
-          <tr><td><code>tracebag.enabled</code></td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
-          <tr><td>Plus <code>tracebag.logs.persist</code></td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td></tr>
-          <tr><td>Plus .NET labels and shared <code>/tmp</code></td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Live logs</td><td>Available while Tracebag runs.</td></tr>
+          <tr><td>Searchable logs</td><td>Tracebag ingests entries Docker still retains when persistence is enabled. Rotated logs cannot be recovered.</td></tr>
+          <tr><td>Counters and recordings</td><td>Collected from session start onward.</td></tr>
+          <tr><td>Stacks, traces, and dumps</td><td>Captured only when requested during the session.</td></tr>
+          <tr><td>Docker events</td><td>Collected from session start onward.</td></tr>
         </tbody>
       </table>
 
-      <div class="callout"><strong>Two separate opt-ins:</strong> <code>tracebag.enabled=true</code> allows discovery and live logs; it does not retain logs. Add <code>tracebag.logs.persist=true</code> when you explicitly want searchable history.</div>
+      <h2>6. End the session</h2>
+      <pre class="code-block"><code>docker compose --env-file .env -f compose.yaml down</code></pre>
+      <p>Tracebag, PostgreSQL, and the Compose network are removed. The running backend no longer has Docker access. Named volumes retain the database, keys, logs, incidents, and artifacts for the next session.</p>
+      <div class="callout"><strong>Permanent deletion:</strong> adding <code>--volumes</code> deletes Tracebag's database, authentication keys, and collected evidence. Do this only when that data is no longer needed.</div>
 
-      <p><code>tracebag.dotnet.tmpVolume</code> must contain the actual Docker volume name, not merely the Compose key. Giving the volume an explicit <code>name</code>, as above, prevents Compose from silently prefixing it.</p>
-
-      <h2>5. Verify and operate</h2>
-      <pre class="code-block"><code>curl --fail http://localhost:9090/health/ready
-docker compose --env-file .env -f compose.yaml logs -f tracebag
-
-# Stop while retaining data
-docker compose --env-file .env -f compose.yaml down</code></pre>
-      <p>Never add <code>--volumes</code> to the final command unless you intend to delete Tracebag's database and stored evidence.</p>
+      <h2>Need continuous history?</h2>
+      <p>Resident mode keeps Tracebag and PostgreSQL running after reboots. Use it when uninterrupted log ingestion or Docker-event history matters more than limiting the time Docker access is active.</p>
+      <pre class="code-block"><code>docker compose --env-file .env \
+  -f compose.yaml -f compose.resident.yaml \
+  up -d --wait</code></pre>
 
       <div class="actions">
         <a class="button" href={`${base}demo/`}>Run the demo</a>
-        <a class="button button-secondary" href="https://github.com/poodlelab/tracebag/blob/main/docs/quickstart.md">Detailed operations guide</a>
+        <a class="button button-secondary" href="https://github.com/poodlelab/tracebag/blob/main/docs/quickstart.md">Read the detailed guide</a>
       </div>
     </div>
   </article>

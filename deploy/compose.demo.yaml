@@ -4,7 +4,7 @@ services:
     build:
       context: ..
       dockerfile: demo/Dockerfile
-    restart: unless-stopped
+    restart: "no"
     init: true
     environment:
       ASPNETCORE_URLS: http://+:8080
@@ -40,7 +40,7 @@ services:
   tracebag-demo-traffic:
     image: ${TRACEBAG_DEMO_IMAGE:-tracebag-demo-api:dev}
     profiles: ["traffic"]
-    restart: unless-stopped
+    restart: "no"
     init: true
     command: ["traffic-generator", "http://tracebag-demo-api:8080"]
     environment:

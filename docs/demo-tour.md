@@ -72,3 +72,10 @@ curl http://localhost:9091/demo/status
 The complete [scenario guide](../demo/README.md) covers slow requests, lock
 contention, ThreadPool starvation, and downstream failure, including the exact
 evidence to expect from each.
+
+End the demo session while preserving Tracebag evidence with:
+
+```bash
+docker compose --env-file .env \
+  -f deploy/compose.yaml -f deploy/compose.demo.yaml down
+```

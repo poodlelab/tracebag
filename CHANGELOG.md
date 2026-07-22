@@ -4,6 +4,27 @@ All notable Tracebag changes are recorded here. The project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html), and the format is
 based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.1.2] - 2026-07-22
+
+### Added
+
+- An optional resident Compose override for operators who deliberately need
+  continuous log, counter, and Docker-event collection.
+- A Traefik reverse-proxy overlay alongside the existing Caddy and Nginx
+  examples.
+
+### Changed
+
+- The published stack is now session-first and does not restart Tracebag,
+  PostgreSQL, or the demo automatically.
+- The README, installation guide, security model, and product website now
+  separate one-time target preparation from starting and stopping a debugging
+  session.
+- Remote-server guidance now treats an existing HTTPS reverse proxy as the
+  normal browser path and SSH forwarding as an optional fallback.
+- Docker socket documentation now states explicitly that the read-only mount
+  flag does not make Docker API operations read-only.
+
 ## [0.1.1] - 2026-07-21
 
 ### Added
@@ -44,5 +65,6 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Docker Compose distribution, multi-architecture GHCR publishing, SBOM and
   provenance attestations, image signing, and a GitHub Pages product site.
 
+[0.1.2]: https://github.com/poodlelab/tracebag/releases/tag/v0.1.2
 [0.1.1]: https://github.com/poodlelab/tracebag/releases/tag/v0.1.1
 [0.1.0]: https://github.com/poodlelab/tracebag/releases/tag/v0.1.0

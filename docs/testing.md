@@ -55,10 +55,12 @@ on the exact tag before publishing. After all five digests are scanned, signed,
 and verified, it runs:
 
 ```bash
-./scripts/verify-published-runtime.sh 0.1.1 ghcr.io/poodlelab
+./scripts/verify-published-runtime.sh 0.1.2 ghcr.io/poodlelab
 ```
 
-This path never builds source. It pulls all five exact `X.Y.Z` images, launches
-the release Compose files, discovers the demo container and its .NET process,
-captures a real stack snapshot with the published runner, and downloads the
-resulting artifact. It uses isolated temporary volumes and removes them on exit.
+This path never builds source. It pulls the exact application and demo images,
+launches the release Compose files, discovers the demo container and its .NET
+process, exercises the on-demand .NET 8 runner pull, captures a real stack
+snapshot, and downloads the resulting artifact. It then proves session shutdown
+removes the containers while preserving evidence volumes before its isolated
+test cleanup deletes them.

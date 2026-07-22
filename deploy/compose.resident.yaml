@@ -1,0 +1,6 @@
+services:
+  tracebag:
+    restart: unless-stopped
+
+  tracebag-postgres:
+    restart: unless-stopped

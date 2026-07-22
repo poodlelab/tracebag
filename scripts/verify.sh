@@ -21,8 +21,10 @@ required_files=(
   "docs/supply-chain-security.md"
   "docs/releasing.md"
   "deploy/compose.release.yaml"
+  "deploy/compose.resident.yaml"
   "deploy/compose.demo.release.yaml"
   "deploy/.env.release.example"
+  "deploy/reverse-proxy/traefik/compose.traefik.yaml"
   ".github/workflows/ci.yml"
   ".github/workflows/release.yml"
   ".github/workflows/pages.yml"
@@ -79,10 +81,23 @@ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; 
     docker compose --env-file /dev/null --file deploy/compose.release.yaml config --quiet
   TRACEBAG_POSTGRES_PASSWORD=compose-validation-only \
   TRACEBAG_ADMIN_PASSWORD_HASH=compose-validation-only \
+    docker compose --env-file /dev/null --file deploy/compose.release.yaml --file deploy/compose.resident.yaml config --quiet
+  TRACEBAG_POSTGRES_PASSWORD=compose-validation-only \
+  TRACEBAG_ADMIN_PASSWORD_HASH=compose-validation-only \
     docker compose --env-file /dev/null --file deploy/compose.release.yaml --file deploy/compose.demo.release.yaml config --quiet
+  TRACEBAG_POSTGRES_PASSWORD=compose-validation-only \
+  TRACEBAG_ADMIN_PASSWORD_HASH=compose-validation-only \
+  TRACEBAG_HOSTNAME=tracebag.example.com \
+    docker compose --env-file /dev/null --file deploy/compose.release.yaml --file deploy/reverse-proxy/traefik/compose.traefik.yaml config --quiet
 else
   echo "Docker Compose unavailable; Compose validation skipped." >&2
 fi
+
+if rg -n 'restart: unless-stopped' deploy/compose.release.yaml deploy/compose.demo.release.yaml; then
+  echo "Session-first Compose files must not restart services automatically." >&2
+  exit 1
+fi
+rg -q 'restart: unless-stopped' deploy/compose.resident.yaml
 
 for shell_script in scripts/*.sh runners/common/entrypoint.sh; do
   bash -n "${shell_script}"

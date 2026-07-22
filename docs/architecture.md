@@ -1,9 +1,10 @@
 # Architecture
 
-Tracebag is a self-hosted diagnostics console for Dockerized .NET applications.
-One installation discovers explicitly opted-in containers, ingests their logs,
-records runtime counters, runs bounded diagnostic captures, and correlates the
-resulting evidence into incidents.
+Tracebag is an on-demand diagnostics console for Dockerized .NET applications.
+An operator starts it for an investigation, works through an authenticated web
+interface, and stops it afterward. During that session it discovers explicitly
+opted-in containers, ingests their logs, records runtime counters, runs bounded
+diagnostic captures, and correlates the evidence into incidents.
 
 ## System boundary
 
@@ -31,7 +32,15 @@ Tracebag (ASP.NET Core API + Angular application)
 Tracebag is designed for a single trusted operator boundary. It binds to IPv4
 loopback by default, authenticates with an administrator account, and expects a
 trusted HTTPS reverse proxy when accessed remotely. PostgreSQL is never exposed
-by the supplied Compose files.
+by the supplied Compose files. The default services do not restart
+automatically; named volumes preserve authentication keys, database state, and
+artifacts between sessions. An explicit Compose override enables resident
+operation when continuous collection is required.
+
+Targets are prepared independently of Tracebag. Their discovery labels and, for
+.NET diagnostics, shared runtime-socket volume must exist when Docker creates
+the target container. This lets an operator start Tracebag without recreating a
+failing workload.
 
 ## Components
 
@@ -140,8 +149,11 @@ therefore combines explicit label opt-in with fixed runner commands, localhost
 binding, cookie authentication, CSRF protection, audited mutations, bounded
 capture profiles, gated restart and full-dump operations, and no shell endpoint.
 These controls reduce accidental and remote misuse but do not turn Docker access
-into a low-privilege capability. Operators must protect the host, reverse proxy,
-credentials, backups, and collected diagnostic data.
+into a low-privilege capability. The socket mount's `:ro` flag does not make
+Docker API operations read-only. Session-first operation limits how long the
+backend holds this authority; it does not reduce that authority while the stack
+is running. Operators must protect the host, reverse proxy, credentials,
+backups, retained volumes, and collected diagnostic data.
 
 ## Availability and retention
 
@@ -176,6 +188,8 @@ website/                  Astro product and documentation site
 ## Design constraints
 
 - Deployment is Docker Compose on one Docker host.
+- The recommended lifecycle is an operator-started, operator-stopped diagnostic
+  session; resident operation is explicit.
 - PostgreSQL and local volumes are the only required persistence services.
 - Only explicitly labeled containers are visible.
 - Diagnostics are .NET-specific; log and Docker visibility are runtime-agnostic.
