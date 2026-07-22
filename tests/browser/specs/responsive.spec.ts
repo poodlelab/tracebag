@@ -31,7 +31,7 @@ for (const viewport of [
     test.skip(!websiteUrl, 'TRACEBAG_WEBSITE_URL is required.');
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto(websiteUrl);
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Debug a .NET container');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Start a diagnostics UI');
     await expectNoHorizontalOverflow(page);
 
     const screenshot = page.locator('.screenshot-scroll').first();
@@ -48,5 +48,11 @@ for (const viewport of [
     } else {
       expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
     }
+
+    const websiteBase = websiteUrl.endsWith('/') ? websiteUrl : `${websiteUrl}/`;
+    await page.goto(new URL('getting-started/', websiteBase).toString());
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Prepare once');
+    await expect(page.getByRole('heading', { name: '6. End the session' })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
   });
 }

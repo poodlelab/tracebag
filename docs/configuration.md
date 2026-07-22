@@ -9,7 +9,7 @@ OtterScope compatibility aliases.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `TRACEBAG_STAGE` | `local` | Identifies this Tracebag instance in runner names and labels. |
-| `TRACEBAG_PUBLIC_URL` | `http://localhost:9090` | External base URL used by product links. |
+| `TRACEBAG_PUBLIC_URL` | `http://localhost:9090` | External base URL used by product links. Set an `https://` URL for remote sessions. |
 | `TRACEBAG_DATABASE_URL` | empty | PostgreSQL connection string. Empty enables development file fallback where supported. |
 | `TRACEBAG_DATA_DIR` | `/data` | Data-protection keys and development fallback data. |
 | `TRACEBAG_ARTIFACT_DIR` | `/artifacts` | Artifact files visible to the API container. |
@@ -25,6 +25,11 @@ The standalone Compose file additionally recognizes deployment-only values:
 | `TRACEBAG_DATA_VOLUME` | `tracebag_data` | Persistent keys and fallback-data volume name. |
 | `TRACEBAG_POSTGRES_VOLUME` | `tracebag_postgres` | Persistent PostgreSQL volume name. |
 | `TRACEBAG_POSTGRES_PASSWORD` | none | Required password used only between the app and its private PostgreSQL service. |
+
+The published Compose file uses `restart: "no"` for session-first operation.
+`deploy/compose.resident.yaml` overrides the application and database to
+`restart: unless-stopped` when continuous collection is intentional. This is a
+Compose deployment choice rather than an application environment variable.
 
 ## Authentication
 

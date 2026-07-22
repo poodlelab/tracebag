@@ -35,6 +35,21 @@ host-level. Label filtering, fixed runner profiles, authentication, and CSRF
 protection reduce remote and accidental misuse, but they do not make the Docker
 socket a low-privilege interface.
 
+The browser never receives the socket and cannot construct Docker requests.
+Tracebag's authenticated backend owns the Docker connection and uses it to
+inspect targets, pull approved runner images, and create, start, stop, and
+remove runner containers. The `:ro` suffix on the socket mount makes the socket
+filesystem entry read-only inside the container; it does not make Docker API
+operations read-only. Treat compromise of the backend as compromise of a Docker
+administrator.
+
+The published Compose stack is session-first. Tracebag and PostgreSQL do not
+restart automatically: start them for an investigation and stop them afterward.
+This limits the period during which the backend holds Docker access, but it does
+not reduce that access while Tracebag is running. Named volumes remain after
+shutdown and must still be protected because they contain authentication keys,
+logs, incidents, and diagnostic evidence.
+
 Required operational controls:
 
 - bind Tracebag to localhost by default;
@@ -48,6 +63,17 @@ Required operational controls:
 - keep restart and full-dump operations disabled unless needed;
 - protect and rotate backups, artifacts, and data-protection keys;
 - update Tracebag and its runner images regularly.
+
+## Supported operating boundary
+
+| Environment | Guidance |
+| --- | --- |
+| Development workstation or homelab | Supported when the operator controls the Docker host. |
+| Trusted server reached through HTTPS, a private network, or VPN | Supported for a single trusted operator boundary. |
+| Temporary production investigation | Reasonable when the host owner accepts the Docker-administrator trust boundary and stops Tracebag afterward. |
+| Direct public HTTP exposure | Not supported. Authentication credentials and evidence require transport security. |
+| Untrusted multi-user Docker host | Not supported. Tracebag is not a tenant isolation boundary. |
+| Hosted service controlling customer Docker daemons | Not supported by this architecture. |
 
 Tracebag bounds login request bodies and credential fields, performs one
 password-hash verification for every syntactically valid credential failure,

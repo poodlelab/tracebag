@@ -21,6 +21,9 @@ The release workflow scans both platform images at the exact published digest
 and retains the resolved manifest, vulnerability reports, SBOM, provenance, and
 digest as 90-day workflow evidence for every image.
 
+The GitHub Release also attaches the session-first Compose file, optional
+resident override, bounded demo overlay, and environment template.
+
 The product-website workflow always builds and uploads its static artifact. Its
 deployment job runs only when the repository variable
 `TRACEBAG_PAGES_ENABLED=true`; set that variable only after GitHub Pages is
@@ -41,7 +44,8 @@ download before `X.Y`/`latest` aliases move or a GitHub Release is created.
 2. Run `./scripts/release-check.sh` on a clean checkout with Docker available.
    Review the five JSON vulnerability reports and SPDX SBOMs produced by
    `./scripts/verify-images.sh` under `.tracebag/supply-chain-evidence`.
-3. Rehearse clean install, backup, upgrade, restore, and rollback.
+3. Rehearse clean session start and stop, resident mode, backup, upgrade,
+   restore, and rollback.
 4. Review Docker socket warnings, supported scope, and configuration changes.
 5. Add the version and UTC release date to `CHANGELOG.md`.
 6. Ensure `VERSION`, the changelog, website quickstart, and Compose default agree.
@@ -64,7 +68,7 @@ cosign verify \
   --certificate-identity-regexp \
     'https://github.com/poodlelab/tracebag/.github/workflows/release.yml@refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  ghcr.io/poodlelab/tracebag:0.1.1
+  ghcr.io/poodlelab/tracebag:0.1.2
 ```
 
 Inspect the attached SBOM and provenance with an OCI-aware client before

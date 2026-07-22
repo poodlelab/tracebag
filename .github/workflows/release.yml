@@ -348,5 +348,6 @@ jobs:
           generate_release_notes: true
           files: |
             deploy/compose.release.yaml
+            deploy/compose.resident.yaml
             deploy/compose.demo.release.yaml
             deploy/.env.release.example

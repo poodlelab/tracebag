@@ -4,18 +4,19 @@
 
 <h1 align="center">Tracebag</h1>
 
-Tracebag is a self-hosted debugging workspace for Dockerized .NET applications.
-It brings the logs, runtime counters, stack snapshots, traces, dumps, and notes
-from one production problem into a single timeline on infrastructure you
-control.
+Tracebag is an on-demand diagnostics UI for Dockerized .NET applications. Start
+it on a Docker host for an investigation, use the browser to search logs, watch
+runtime counters, capture stacks and traces, and keep the useful evidence in one
+incident timeline. Stop it when the debugging session is complete.
 
-It is intended for the point where a service is unhealthy and logs alone no
-longer explain why. Tracebag does not expose a shell or accept arbitrary Docker
-commands, and it ignores every container that has not explicitly opted in.
+Tracebag orchestrates Docker and the existing .NET diagnostic tools through
+fixed, bounded operations. It does not expose a shell or accept arbitrary
+Docker commands, and it ignores every container that has not explicitly opted
+in.
 
 ![A Tracebag incident showing a correlated timeline and captured evidence](website/public/screenshots/demo-contention-overview.jpg)
 
-## What it helps you do
+## What it does
 
 - **Find the relevant window.** Search retained container logs, follow a live
   tail, and line events up with Docker health and resource changes.
@@ -25,46 +26,89 @@ commands, and it ignores every container that has not explicitly opted in.
   EventPipe trace, GC dump, or explicitly gated process dump and keep the result
   with the incident that caused it.
 
-Tracebag 0.1.1 supports Docker Engine on Linux `amd64` and `arm64`. Runtime
+Tracebag 0.1.2 supports Docker Engine on Linux `amd64` and `arm64`. Runtime
 diagnostics use dedicated runners for .NET 8, 9, and 10. The web application,
 API, and PostgreSQL database are installed together with Docker Compose.
 
-## Install
+## How a debugging session works
 
-There is intentionally no one-line `docker compose up` command in this README.
-A real installation needs a database secret and an administrator password hash
-before it is safe to start.
+Prepare each target container once by adding explicit Tracebag labels and, for
+.NET diagnostics, a named volume for the runtime diagnostic socket. The
+Tracebag stack itself does not need to run until an investigation begins.
+
+1. Start Tracebag with Docker Compose.
+2. Open the UI locally or through the host's existing HTTPS reverse proxy.
+3. Collect logs, counter recordings, stacks, traces, and other evidence.
+4. Stop the stack. Its Docker access ends while named volumes preserve evidence
+   for the next session.
+
+The supplied Compose file does not restart Tracebag automatically. Continuous
+collection is available through an explicit resident-mode override.
+
+## Set up Tracebag
+
+First setup creates a database secret and an administrator password hash. After
+that, starting and stopping a session each takes one Compose command.
 
 The [Docker installation guide](docs/quickstart.md) walks through the complete
 sequence:
 
 1. Download the Compose and environment files for an explicit version.
 2. Generate the two required secrets.
-3. Pull the signed application from GHCR. The matching diagnostic runner is
-   downloaded on first use.
-4. Start Tracebag on `127.0.0.1:9090` and verify its readiness endpoint.
+3. Set an environment scope and, on a remote host, its HTTPS public URL.
+4. Start Tracebag and verify its readiness endpoint.
 
-The guide also covers upgrades, persistent volumes, HTTPS, backup, and restore.
+The guide covers a same-host HTTPS reverse proxy, private-network restrictions,
+optional SSH forwarding, persistent volumes, and continuous operation.
 
-## Connect a container
+## Prepare a target container
 
 Tracebag cannot see a workload until the workload opts in:
 
 ```yaml
 services:
   api:
+    environment:
+      DOTNET_EnableDiagnostics: "1"
+    volumes:
+      - api-dotnet-tmp:/tmp
     labels:
       tracebag.enabled: "true"
       tracebag.environment: "production"
+      tracebag.displayName: "My API"
       tracebag.logs.persist: "true"
+      tracebag.logs.parser: "auto"
+      tracebag.logs.retentionDays: "7"
+      tracebag.kind: "dotnet"
+      tracebag.dotnet.runtime: "8"
+      tracebag.dotnet.tmpVolume: "my_api_dotnet_tmp"
+
+volumes:
+  api-dotnet-tmp:
+    name: my_api_dotnet_tmp
 ```
 
 The first label allows discovery and live logs; it does not retain logs for
 search. The persistence label is a separate data-retention opt-in. The
 environment label keeps unrelated projects on the same Docker host out of this
-installation. .NET process inspection and profiling also require the runtime
-diagnostic socket to be shared through a named `/tmp` volume. See the
-[container label reference](docs/labels.md) for the complete configuration.
+installation. The .NET labels and named `/tmp` volume enable process inspection
+and profiling without putting diagnostic tools in the target image.
+
+Docker labels and mounts cannot be added to an existing container. Prepare the
+target before an incident; recreating it during an investigation can change the
+failure state. See the [container label reference](docs/labels.md) for live-log
+only and non-.NET configurations.
+
+## What is available after startup
+
+- Live logs are available for opted-in containers while Tracebag is running.
+- Searchable logs require `tracebag.logs.persist=true`. On startup, Tracebag can
+  ingest entries Docker still retains for the current container, but it cannot
+  recover rotated or deleted logs.
+- Counters, recordings, stack snapshots, traces, and Docker events are captured
+  only while Tracebag is running.
+- Run resident mode when complete continuous history is more important than
+  limiting the time Docker access is active.
 
 ## Try it on the demo API
 
@@ -89,10 +133,14 @@ server-owned duration and resource limits and can be reset.
 - It does not hide the privilege of the Docker socket.
 - It is not a Kubernetes or distributed tracing platform.
 
-Access to the Docker socket is effectively host-level access. Keep Tracebag on
-a host you control, leave its default localhost binding in place, and use a
-trusted HTTPS reverse proxy for remote access. Read the
-[security model](SECURITY.md) before putting it near production workloads.
+While Tracebag is running, its backend has Docker administrator capabilities.
+The `:ro` socket mount does not make Docker API operations read-only. Run it
+only on a host you control, keep authentication enabled, and use localhost or a
+trusted HTTPS reverse proxy, optionally restricted to a private network or VPN.
+Stopping the stack removes the running component with Docker access; retained
+evidence remains sensitive.
+Read the [security model](SECURITY.md) before putting it near production
+workloads.
 
 ## Documentation
 

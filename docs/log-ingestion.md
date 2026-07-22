@@ -1,8 +1,10 @@
 # Persistent log ingestion and search
 
-Tracebag can continuously ingest logs from explicitly opted-in Docker targets,
-store them in PostgreSQL, search them after container recreation, and stream
-new persisted entries to the browser.
+While Tracebag is running, it can ingest logs from explicitly opted-in Docker
+targets, store them in PostgreSQL, search them after container recreation, and
+stream new persisted entries to the browser. A new session resumes from its
+durable checkpoint and can ingest older entries that Docker still retains. It
+cannot recover logs Docker has already rotated or deleted.
 
 ## Enable a target
 

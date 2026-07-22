@@ -58,6 +58,13 @@ docker build --quiet --tag "${TRACEBAG_DEMO_IMAGE}" --file demo/Dockerfile .
 docker build --quiet --tag "${TRACEBAG_RUNNER_IMAGE_DOTNET_8}" --file runners/dotnet-8/Dockerfile .
 
 compose up --detach --wait tracebag-postgres tracebag tracebag-demo-api
+for service in tracebag tracebag-postgres tracebag-demo-api; do
+  container_id="$(compose ps --quiet "${service}")"
+  [[ "$(docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' "${container_id}")" == "no" ]] || {
+    echo "Session service ${service} restarts automatically." >&2
+    exit 1
+  }
+done
 tracebag_binding="$(compose port tracebag 8080)"
 base_url="http://127.0.0.1:${tracebag_binding##*:}"
 curl --fail --silent --show-error "${base_url}/health/ready" | grep -q '"status":"healthy"'

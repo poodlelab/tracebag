@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 const base = import.meta.env.BASE_URL;
 const docs = [
-  ['Get started', 'Install the released images and connect the first opted-in container.', `${base}getting-started/`],
+  ['Get started', 'Prepare a target, configure the host once, and start a debugging session.', `${base}getting-started/`],
   ['Demo tour', 'Generate bounded problems and follow an evidence-first investigation.', `${base}demo/`],
   ['Configuration', 'Environment variables, limits, storage, authentication, and runtime runners.', 'https://github.com/poodlelab/tracebag/blob/main/docs/configuration.md'],
   ['Container labels', 'Discovery, log persistence, .NET sockets, runtime versions, and gated operations.', 'https://github.com/poodlelab/tracebag/blob/main/docs/labels.md'],
@@ -12,17 +12,17 @@ const docs = [
   ['Diagnostics', 'Stack snapshots, traces, dumps, runners, artifact integrity, and safety limits.', 'https://github.com/poodlelab/tracebag/blob/main/docs/diagnostic-jobs.md'],
   ['Incidents', 'Guided captures, timelines, notes, evidence, and portable Tracebag exports.', 'https://github.com/poodlelab/tracebag/blob/main/docs/incidents.md'],
   ['Local analysis', 'Stack groups, trace hot paths, correlations, confidence, and limitations.', 'https://github.com/poodlelab/tracebag/blob/main/docs/local-analysis.md'],
-  ['Operations', 'Upgrade, rollback, backup, restore, retention, and recovery.', 'https://github.com/poodlelab/tracebag/blob/main/docs/operations.md'],
+  ['Operations', 'Session lifecycle, resident mode, upgrade, backup, retention, and recovery.', 'https://github.com/poodlelab/tracebag/blob/main/docs/operations.md'],
   ['Security', 'Docker access, exposure controls, sensitive evidence, and reporting.', `${base}security/`],
   ['Architecture', 'Trust boundaries, components, data model, and long-term direction.', 'https://github.com/poodlelab/tracebag/blob/main/docs/architecture.md'],
 ];
 ---
 
-<BaseLayout title="Documentation — Tracebag" description="Install, configure, operate, and understand Tracebag.">
+<BaseLayout title="Documentation — Tracebag" description="Prepare applications and run secure, on-demand Tracebag diagnostic sessions.">
   <header class="page-hero shell narrow">
     <p class="eyebrow">Documentation</p>
     <h1>Operate Tracebag with the boundaries visible.</h1>
-    <p class="lead">Start small, opt in deliberately, and preserve the exact evidence needed to explain a difficult .NET container incident.</p>
+    <p class="lead">Prepare applications deliberately, start Tracebag for an investigation, and preserve the evidence needed to explain it.</p>
   </header>
   <section class="section section-muted">
     <div class="shell docs-grid">

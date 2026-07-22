@@ -1,0 +1,18 @@
+services:
+  tracebag:
+    networks:
+      - default
+      - tracebag-proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: ${TRACEBAG_PROXY_NETWORK:-proxy}
+      traefik.http.routers.tracebag.rule: Host(`${TRACEBAG_HOSTNAME:?Set TRACEBAG_HOSTNAME in .env}`)
+      traefik.http.routers.tracebag.entrypoints: websecure
+      traefik.http.routers.tracebag.tls: "true"
+      traefik.http.routers.tracebag.tls.certresolver: ${TRACEBAG_TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.services.tracebag.loadbalancer.server.port: "8080"
+
+networks:
+  tracebag-proxy:
+    name: ${TRACEBAG_PROXY_NETWORK:-proxy}
+    external: true

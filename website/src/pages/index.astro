@@ -19,15 +19,15 @@ const jobs = [
 ---
 
 <BaseLayout
-  title="Tracebag — self-hosted debugging for .NET containers"
-  description="Search logs, inspect .NET runtime pressure, and preserve diagnostic evidence from Dockerized .NET applications."
+  title="Tracebag — on-demand .NET diagnostics for Docker"
+  description="Start an authenticated diagnostics UI on your Docker host, investigate a .NET application, and stop it when the session is complete."
 >
   <section class="hero shell">
     <div class="hero-copy">
-      <h1>Debug a .NET container after the easy checks stop helping.</h1>
-      <p class="lead">Tracebag keeps its logs, runtime counters, Docker state, stack snapshots, and traces in one incident timeline. It runs on your Docker host and stores the evidence there.</p>
+      <h1>Start a diagnostics UI when a .NET container needs investigation.</h1>
+      <p class="lead">Tracebag runs on your Docker host for a debugging session. Search logs, inspect runtime counters, capture stacks and traces, then stop it when the work is done.</p>
       <div class="actions">
-        <a class="button" href={`${base}getting-started/`}>Install Tracebag</a>
+        <a class="button" href={`${base}getting-started/`}>Start a debugging session</a>
         <a class="button button-secondary" href={`${base}demo/`}>See the demo investigation</a>
       </div>
     </div>
@@ -52,7 +52,7 @@ const jobs = [
   <section class="section shell" id="features">
     <div class="section-heading plain-heading">
       <h2>Start with the question you actually have.</h2>
-      <p>Tracebag is not another general-purpose dashboard. It is a place to investigate one difficult failure and retain enough evidence to explain it later.</p>
+      <p>Tracebag is not a replacement for an observability stack. It is a browser interface for one difficult investigation and the evidence needed to explain it.</p>
     </div>
     <div class="job-list">
       {jobs.map((job, index) => (
@@ -89,7 +89,7 @@ const jobs = [
   <section class="section shell boundary-section">
     <div class="boundary-intro">
       <h2>It needs the Docker socket. That is a serious permission.</h2>
-      <p>Tracebag uses Docker access to inspect opted-in workloads and launch temporary diagnostic runners. It should run only on a host you control, bound to localhost or protected by a trusted HTTPS proxy.</p>
+      <p>While Tracebag is running, its backend has Docker administrator capabilities. Use it only on a host you control, access it through localhost or a trusted HTTPS proxy, and stop it after the session.</p>
       <a class="text-link" href={`${base}security/`}>Read the complete security model <span aria-hidden="true">→</span></a>
     </div>
     <div class="boundary-details">
@@ -99,6 +99,7 @@ const jobs = [
         <li>The browser cannot submit shell commands or arbitrary Docker requests.</li>
         <li>Diagnostics use fixed profiles, hard limits, and network-isolated runners.</li>
         <li>Authentication is enabled and the service binds to localhost.</li>
+        <li>The supplied stack does not restart automatically.</li>
         <li>Evidence stays local unless an operator explicitly exports it.</li>
       </ul>
     </div>
@@ -111,7 +112,7 @@ const jobs = [
         <p>Generate CPU pressure, allocations, contention, slow requests, downstream failures, or ThreadPool starvation, then investigate the result in Tracebag.</p>
       </div>
       <div class="actions">
-        <a class="button" href={`${base}getting-started/`}>Install with Docker</a>
+        <a class="button" href={`${base}getting-started/`}>Start with Docker</a>
         <a class="button button-secondary" href="https://github.com/poodlelab/tracebag">Browse the source</a>
       </div>
     </div>

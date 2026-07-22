@@ -92,6 +92,13 @@ for image in \
 done
 
 "${compose[@]}" up --detach --wait tracebag-postgres tracebag tracebag-demo-api
+for service in tracebag tracebag-postgres tracebag-demo-api; do
+  container_id="$("${compose[@]}" ps --quiet "${service}")"
+  [[ "$(docker inspect --format '{{.HostConfig.RestartPolicy.Name}}' "${container_id}")" == "no" ]] || {
+    echo "Published session service ${service} restarts automatically." >&2
+    exit 1
+  }
+done
 tracebag_binding="$("${compose[@]}" port tracebag 8080)"
 demo_binding="$("${compose[@]}" port tracebag-demo-api 8080)"
 tracebag_url="http://127.0.0.1:${tracebag_binding##*:}"
@@ -153,6 +160,36 @@ artifact_id="$(jq -r 'select(.status == "completed") | .artifactId // empty' <<<
 curl --fail --silent --show-error --output "${scratch}/artifact" \
   "${tracebag_url}/api/artifacts/${artifact_id}/download"
 test -s "${scratch}/artifact"
+
+for _ in $(seq 1 30); do
+  if ! docker ps --all --quiet \
+    --filter 'label=tracebag.runner=true' \
+    --filter "label=tracebag.targetContainer=${target_docker_id}" | grep -q .; then
+    break
+  fi
+  sleep 1
+done
+if docker ps --all --quiet \
+  --filter 'label=tracebag.runner=true' \
+  --filter "label=tracebag.targetContainer=${target_docker_id}" | grep -q .; then
+  echo "Published diagnostic runner remained after the capture completed." >&2
+  exit 1
+fi
+
+"${compose[@]}" down
+if docker ps --all --quiet --filter "label=com.docker.compose.project=${project}" | grep -q .; then
+  echo "Published session left Compose containers after shutdown." >&2
+  exit 1
+fi
+for volume in \
+  "${TRACEBAG_POSTGRES_VOLUME}" \
+  "${TRACEBAG_DATA_VOLUME}" \
+  "${TRACEBAG_ARTIFACT_VOLUME}"; do
+  docker volume inspect "${volume}" >/dev/null || {
+    echo "Published session shutdown removed evidence volume ${volume}." >&2
+    exit 1
+  }
+done
 
 cleanup 0
 trap - EXIT

@@ -5,13 +5,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <BaseLayout title="Security model — Tracebag" description="Understand Tracebag's Docker access, diagnostic data risks, and operational security boundaries.">
   <header class="page-hero shell narrow">
     <p class="eyebrow">Security model</p>
-    <h1>Powerful diagnostics, explicit boundaries.</h1>
-    <p class="lead">Tracebag does not pretend that Docker access is low privilege. The product narrows its interface and makes the remaining operational responsibility visible.</p>
+    <h1>Docker access remains an administrator permission.</h1>
+    <p class="lead">Tracebag narrows what the browser can request and defaults to an operator-started session. Neither measure reduces the backend's authority while it is running.</p>
   </header>
 
   <article class="section section-muted">
     <div class="shell narrow prose">
-      <div class="callout"><strong>Core warning:</strong> access to the Docker socket is effectively host-level access. Run Tracebag only on a host you control and never expose its port directly to an untrusted network.</div>
+      <div class="callout"><strong>Core warning:</strong> access to the Docker socket is effectively host-level access. Run Tracebag only on a host you control and never expose its plain HTTP port to an untrusted network.</div>
+
+      <h2>What has Docker access</h2>
+      <p>The browser never receives the Docker socket. The authenticated Tracebag backend uses it to inspect opted-in containers, pull approved runner images, and create, start, stop, and remove temporary runners. The browser cannot provide commands, image names, mounts, Docker flags, or output paths.</p>
+      <p>The socket is mounted with <code>:ro</code>, but that flag only protects the socket filesystem entry. It does not make Docker API operations read-only. A compromised Tracebag backend should be treated as a compromised Docker administrator.</p>
+
+      <h2>Why sessions are the default</h2>
+      <p>The published services do not restart automatically. Start Tracebag for an investigation and stop it afterward. This shortens the period in which the backend holds Docker access; it does not make that access less powerful while the session is active.</p>
+      <p>Stopping the stack removes the running Docker client. Named volumes remain and still contain sensitive authentication keys and diagnostic evidence.</p>
 
       <h2>Default protections</h2>
       <ul>
@@ -29,7 +37,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <p>Logs, traces, stack snapshots, GC dumps, full dumps, and incident exports can contain credentials, personal information, request data, and business secrets. Tracebag stores data locally, but the operator controls access, retention, backup, and deletion.</p>
 
       <h2>Remote access</h2>
-      <p>Keep the application on localhost and terminate HTTPS through a trusted reverse proxy. Trust forwarded headers only from the proxy's exact address or controlled network, restrict access at the network layer, and do not publish PostgreSQL.</p>
+      <p>Keep the application on localhost and terminate HTTPS through a trusted reverse proxy. The proxy route can remain configured while Tracebag is stopped. Trust forwarded headers only from the proxy's exact address or controlled network, restrict access at the network layer, and do not publish PostgreSQL.</p>
+
+      <h2>Where this model fits</h2>
+      <table>
+        <thead><tr><th>Environment</th><th>Guidance</th></tr></thead>
+        <tbody>
+          <tr><td>Development machine or homelab</td><td>Supported when you control the Docker host.</td></tr>
+          <tr><td>Trusted server behind HTTPS or a VPN</td><td>Supported for a single trusted operator boundary.</td></tr>
+          <tr><td>Temporary production investigation</td><td>Reasonable when the host owner accepts the Docker-administrator boundary.</td></tr>
+          <tr><td>Direct public HTTP exposure</td><td>Not supported.</td></tr>
+          <tr><td>Untrusted multi-user host</td><td>Not supported; Tracebag is not a tenant isolation boundary.</td></tr>
+        </tbody>
+      </table>
 
       <h2>External services</h2>
       <p>Analysis runs locally. Tracebag does not send evidence to external analysis providers.</p>

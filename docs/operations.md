@@ -1,9 +1,32 @@
-# Upgrade, rollback, backup, restore, and retention
+# Session lifecycle, continuous operation, upgrade, and recovery
 
 This guide applies to the published Docker Compose distribution. Commands are
 run from the installation directory containing `compose.yaml` and `.env`.
 
-Define a shorthand for the commands in this guide:
+The default stack is session-first: its services do not restart automatically.
+Start it for an investigation and use `down` afterward. Named volumes preserve
+state between sessions:
+
+```bash
+docker compose --env-file .env -f compose.yaml up -d --wait
+docker compose --env-file .env -f compose.yaml down
+```
+
+For continuous log ingestion and Docker-event history, download
+`compose.resident.yaml` from the same release and include it in every lifecycle
+command:
+
+```bash
+compose=(docker compose --env-file .env \
+  -f compose.yaml -f compose.resident.yaml)
+"${compose[@]}" up -d --wait
+```
+
+Resident mode leaves Tracebag's Docker-administrator access active continuously.
+Use it only when complete collection history is worth that longer exposure.
+
+Unless a section says otherwise, the remaining examples use the session-first
+Compose file:
 
 ```bash
 compose=(docker compose --env-file .env -f compose.yaml)
