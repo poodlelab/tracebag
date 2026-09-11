@@ -8,7 +8,7 @@
     "test": "ng test --watch=false"
   },
   "dependencies": {
-    "@angular/common": "21.2.18",
+    "@angular/common": "21.2.20",
     "@angular/compiler": "21.2.18",
     "@angular/core": "21.2.18",
     "@angular/forms": "21.2.18",
