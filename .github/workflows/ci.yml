@@ -26,7 +26,7 @@ jobs:
         with:
           global-json-file: global.json
       - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -44,7 +44,7 @@ jobs:
       - name: Generate source license evidence
         run: node scripts/generate-license-report.mjs --output supply-chain-evidence/source-licenses.json
       - name: Retain source license evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: source-license-evidence-${{ github.sha }}
           path: supply-chain-evidence/source-licenses.json
@@ -81,11 +81,11 @@ jobs:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Prepare supply-chain evidence directory
         run: mkdir -p supply-chain-evidence
       - name: Build image
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -119,7 +119,7 @@ jobs:
           version: v0.70.0
       - name: Retain image scan and SBOM evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: image-supply-chain-${{ matrix.name }}-${{ github.sha }}
           path: supply-chain-evidence/
@@ -158,7 +158,7 @@ jobs:
           global-json-file: global.json
       - name: Set up Node.js for browser acceptance
         if: matrix.suite == 'browser'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -175,7 +175,7 @@ jobs:
         run: ${{ matrix.script }}
       - name: Retain browser evidence
         if: always() && matrix.suite == 'browser'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: browser-acceptance-${{ github.sha }}
           path: |
